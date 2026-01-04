@@ -1,23 +1,24 @@
 bot:
-  name: recipes-bot
-  token: 8550935565:AAGBv_gIkDXCI84IgiX4RjjOAikYfMhp1C4
+  name: ${BOT_NAME:recipes-bot}
+  token: ${BOT_TOKEN:8550935565:AAGBv_gIkDXCI84IgiX4RjjOAikYfMhp1C4}
 
 spring:
   datasource:
-    url: jdbc:h2:mem:testdb
-    driver-class-name: org.h2.Driver
-    username: sa
+    url: ${DATABASE_URL}
+    driver-class-name: ${DATABASE_DRIVER_CLASS_NAME:org.postgresql.Driver}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
-    show-sql: true
+    database-platform: ${DATABASE_DIALECT:org.hibernate.dialect.PostgreSQLDialect}
+    show-sql: ${SHOW_SQL:true}
+    hibernate:
+      ddl-auto: none
     properties:
       hibernate:
-        format_sql: true
-  h2:
-    console:
-      enabled: true
+        format_sql: ${FORMAT_SQL:true}
 
 logging:
   level:
-    org.hibernate.sql: DEBUG
-    org.hibernate.orm.jdbc.bind: TRACE
+    org.hibernate.sql: ${SQL_LOGGING_LEVEL:DEBUG}
+    org.hibernate.orm.jdbc.bind: ${SQL_BIND_LOGGING_LEVEL:TRACE}
+    root: ${LOGGING_LEVEL:INFO}

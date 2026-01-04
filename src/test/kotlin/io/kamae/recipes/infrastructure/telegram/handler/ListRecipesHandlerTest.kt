@@ -1,10 +1,8 @@
 package io.kamae.recipes.infrastructure.telegram.handler
 
 import io.kamae.recipes.AbstractTest
-import io.kamae.recipes.application.port.inbound.AddRecipeUseCase
 import io.kamae.recipes.application.port.inbound.ListRecipesUseCase
 import io.kamae.recipes.infrastructure.telegram.dto.TelegramButton
-import io.kamae.recipes.infrastructure.telegram.parser.TelegramMessageHandler
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs

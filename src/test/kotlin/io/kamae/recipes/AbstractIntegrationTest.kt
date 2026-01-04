@@ -1,8 +1,6 @@
 package io.kamae.recipes
 
 import com.ninjasquad.springmockk.SpykBean
-import io.kamae.recipes.application.dto.RecipeDto
-import io.kamae.recipes.application.dto.RecipeShortInfoDto
 import io.kamae.recipes.infrastructure.store.entity.RecipeEntity
 import io.kamae.recipes.infrastructure.store.repository.RecipeJpaRepository
 import org.junit.jupiter.api.AfterEach

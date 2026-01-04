@@ -5,6 +5,7 @@ plugins {
     id("org.springframework.boot") version "3.5.9"
     id("io.spring.dependency-management") version "1.1.7"
     kotlin("plugin.jpa") version "1.9.25"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 group = "io.kamae.recipes"
@@ -26,7 +27,7 @@ dependencies {
     implementation("org.liquibase:liquibase-core:5.0.1")
     implementation("org.telegram:telegrambots:6.9.7.1")
     implementation("io.arrow-kt:arrow-core:1.2.4")
-
+    implementation("org.postgresql:postgresql:42.7.3")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
@@ -44,6 +45,12 @@ tasks.test {
         "--add-opens=java.base/java.util=ALL-UNNAMED",
         "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED"
     )
+}
+
+tasks.shadowJar {
+    archiveBaseName.set("recipes-bot")
+    archiveClassifier.set("")
+    archiveVersion.set("${project.version}-${System.getenv("GITHUB_RUN_NUMBER") ?: "local"}")
 }
 
 allOpen {
