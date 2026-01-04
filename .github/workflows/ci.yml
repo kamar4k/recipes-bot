@@ -20,7 +20,7 @@ jobs:
 
     # Права доступа, необходимые для публикации в GitHub Packages
     permissions:
-      contents: read  # Чтение репозитория
+      contents: write  # Чтение репозитория
       packages: write  # Запись в GitHub Container Registry
 
     steps:
@@ -111,7 +111,7 @@ jobs:
           tag_name: v${{ github.ref_name }}-${{ github.run_number }}  # Тег для Git
           name: Release v${{ github.ref_name }}-${{ github.run_number }}  # Название релиза
           files: |  # Файлы для прикрепления к релизу
-            build/libs/*.jar  # Наш собранный JAR
+            build/libs/*.jar
           generate_release_notes: true  # Автоматически генерировать описание из коммитов
           draft: false  # Публиковать сразу (true для предварительного просмотра)
           prerelease: false  # Это не prerelease версия
