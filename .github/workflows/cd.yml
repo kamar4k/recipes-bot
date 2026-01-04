@@ -38,6 +38,7 @@ jobs:
         run: |
           cat > .env << EOF
           BOT_TOKEN=${{ secrets.BOT_TOKEN }}
+          DATABASE_URL=${{ vars.DATABASE_URL }}
           DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }}
           DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}
           ENVIRONMENT=${{ github.event.inputs.environment }}
@@ -61,6 +62,7 @@ jobs:
             
             cat > /opt/recipes-bot/config/.env << 'EOF'
             BOT_TOKEN=${{ secrets.BOT_TOKEN }}
+            DATABASE_URL=${{ vars.DATABASE_URL }}
             DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }}
             DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}
             ENVIRONMENT=${{ github.event.inputs.environment }}
