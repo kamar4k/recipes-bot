@@ -15,8 +15,6 @@ abstract class AbstractIntegrationTest: AbstractTest() {
         const val TEST_CHAT_ID: Long = 1234L
 
         private const val TEST_RECIPE_INGREDIENTS_SERIALIZED = "ingridient1\ningridient2 3\ning3 200g"
-        private const val TEST_ANOTHER_RECIPE_ID = "2be1cc47-3b78-422c-b388-44b8be04eab1"
-        private const val TEST_ANOTHER_RECIPE_TITLE = "Another Recipe Title"
         private const val TEST_ANOTHER_RECIPE_INSTRUCTIONS = "Step1\nStep2\nStep123"
         private val TEST_ANOTHER_RECIPE_INGREDIENTS = listOf("ingridient1", "ingridient2 3", "ing3 200g")
         private const val TEST_ANOTHER_RECIPE_INGREDIENTS_SERIALIZED = "ingridient1\ningridient2 3\ning3 200g"
@@ -38,11 +36,6 @@ abstract class AbstractIntegrationTest: AbstractTest() {
             TEST_ANOTHER_RECIPE_INGREDIENTS_SERIALIZED,
             TEST_ANOTHER_RECIPE_INSTRUCTIONS,
             TEST_ANOTHER_CREATE_DATE
-        )
-
-        val TEST_RECIPE_SHORT_INFO_LIST = listOf(
-            RecipeShortInfoDto(TEST_RECIPE_ID, TEST_RECIPE_TITLE),
-            RecipeShortInfoDto(TEST_ANOTHER_RECIPE_ID, TEST_ANOTHER_RECIPE_TITLE)
         )
     }
 

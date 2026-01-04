@@ -20,6 +20,8 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery
+import org.telegram.telegrambots.meta.api.objects.MaybeInaccessibleMessage
 import org.telegram.telegrambots.meta.api.objects.Message
 import org.telegram.telegrambots.meta.api.objects.Update
 
@@ -38,11 +40,15 @@ class RecipesBotTest : AbstractIntegrationTest() {
 
     private val update: Update = mockk<Update>()
     private val message: Message = mockk<Message>()
+    private val callbackQuery: CallbackQuery = mockk<CallbackQuery>()
+    private val callbackMessage: MaybeInaccessibleMessage = mockk<MaybeInaccessibleMessage>()
 
     @BeforeEach
     fun mockkHandler() {
         every { telegramBotHandlerFactory.getHandler(TELEGRAM_COMMAND_TEXT) } returns telegramBotHandler
         every { update.message } returns message
+        every { callbackQuery.message } returns callbackMessage
+        every { update.callbackQuery } returns callbackQuery
     }
 
     @Test
@@ -53,7 +59,8 @@ class RecipesBotTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun onUpdateReceived_success() {
+    fun onUpdateReceived_successMessage() {
+        every { update.hasMessage() } returns true
         every { message.chatId } returns TEST_CHAT_ID
         every { message.text } returns TELEGRAM_MESSAGE_TEXT
         every { telegramMessageHandler.parseTelegramMessage(TELEGRAM_MESSAGE_TEXT) } returns Either.Right(
@@ -74,9 +81,35 @@ class RecipesBotTest : AbstractIntegrationTest() {
         }
     }
 
+    @Test
+    fun onUpdateReceived_successCallback() {
+        every { update.hasMessage() } returns false
+        every { update.hasCallbackQuery() } returns true
+        every { callbackMessage.chatId } returns TEST_CHAT_ID
+        every { callbackQuery.data } returns TELEGRAM_MESSAGE_TEXT
+        every { telegramMessageHandler.parseTelegramMessage(TELEGRAM_MESSAGE_TEXT) } returns Either.Right(
+            TelegramParsedRequest(
+                TELEGRAM_COMMAND_TEXT, null
+            )
+        )
+        every { telegramBotHandler.executeCommand(any()) } returns TelegramResponse(
+            TELEGRAM_RESPONSE_TEXT
+        )
+
+        every { recipesBot.execute(any<SendMessage>()) } returns null
+
+        recipesBot.onUpdateReceived(update)
+
+        verify {
+            recipesBot.execute(SendMessage(TEST_CHAT_ID.toString(), TELEGRAM_RESPONSE_TEXT))
+        }
+    }
+
+
     @ParameterizedTest
     @MethodSource("errorTestCases")
     fun onUpdateReceived_commonFail(errorMessage: String?, expectedResponse: String) {
+        every { update.hasMessage() } returns true
         every { message.chatId } returns TEST_CHAT_ID
         every { message.text } returns TELEGRAM_MESSAGE_TEXT
         every { telegramMessageHandler.parseTelegramMessage(TELEGRAM_MESSAGE_TEXT) } returns Either.Right(
@@ -97,11 +130,12 @@ class RecipesBotTest : AbstractIntegrationTest() {
 
     @Test
     fun onUpdateReceived_chatIdNotFound() {
-        every { message.chatId } returns null
+        every { update.hasMessage() } returns false
+        every { update.hasCallbackQuery() } returns false
 
         val error = assertThrows<IllegalStateException> { recipesBot.onUpdateReceived(update) }
 
-        assertEquals("Не удалось определить chatId", error.message)
+        assertEquals("Не удалось определить chatId и text в сообщении", error.message)
     }
 
     private fun errorTestCases(): List<Arguments> = listOf(
@@ -111,6 +145,7 @@ class RecipesBotTest : AbstractIntegrationTest() {
 
     @Test
     fun onUpdateReceived_failParse() {
+        every { update.hasMessage() } returns true
         every { message.chatId } returns TEST_CHAT_ID
         every { message.text } returns TELEGRAM_MESSAGE_TEXT
         every { telegramMessageHandler.parseTelegramMessage(TELEGRAM_MESSAGE_TEXT) } returns Either.Left(

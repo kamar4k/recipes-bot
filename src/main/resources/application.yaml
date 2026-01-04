@@ -19,9 +19,5 @@ spring:
 
 logging:
   level:
-    org:
-      hibernate:
-        sql: DEBUG
-        type:
-          descriptor:
-            sql: DEBUG
+    org.hibernate.sql: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE

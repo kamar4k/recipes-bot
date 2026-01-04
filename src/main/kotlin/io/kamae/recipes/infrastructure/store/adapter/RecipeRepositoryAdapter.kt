@@ -15,9 +15,7 @@ class RecipeRepositoryAdapter(
     private val recipeStoreMapper: RecipeStoreMapper
 ) : RecipeRepositoryPort {
     override fun getRecipeInfoList(): List<RecipeShortInfoDto> {
-        val resultList = recipeJpaRepository.findAllSummary()//.map {
-//            projection -> recipeStoreMapper.mapSummaryToShortInfoDto(projection)
-//        }
+        val resultList = recipeJpaRepository.findAllSummary()
 
         return recipeStoreMapper.mapSummaryListToDto(resultList)
     }
