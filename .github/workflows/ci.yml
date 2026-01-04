@@ -71,7 +71,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: telegram-bot-jar  # Имя артефакта для скачивания из UI
+          name: recipes-bot-jar  # Имя артефакта для скачивания из UI
           path: build/libs/*.jar  # Путь к сгенерированным JAR-файлам
           retention-days: 30  # Автоматическое удаление через 30 дней (экономия места)
         # Артефакт можно скачать после завершения workflow из интерфейса GitHub
@@ -131,9 +131,9 @@ jobs:
           context: .  # Контекст сборки - текущая директория
           push: true  # Публиковать образ в registry
           tags: |  # Теги для образа
-            ${{ vars.DOCKER_REGISTRY }}/${{ vars.REGISTRY_OWNER }}/telegram-bot:${{ github.ref_name }}-${{ github.run_number }}
-            # Тег с версией: ghcr.io/username/telegram-bot:main-123
-            ${{ vars.DOCKER_REGISTRY }}/${{ vars.REGISTRY_OWNER }}/telegram-bot:latest
+            ${{ vars.DOCKER_REGISTRY }}/${{ vars.REGISTRY_OWNER }}/recipes-bot:${{ github.ref_name }}-${{ github.run_number }}
+            # Тег с версией: ghcr.io/username/recipes-bot:main-123
+            ${{ vars.DOCKER_REGISTRY }}/${{ vars.REGISTRY_OWNER }}/recipes-bot:latest
             # Тег latest для последней успешной сборки
           labels: |  # Метаданные образа
             version=${{ github.ref_name }}-${{ github.run_number }}  # Версия сборки
