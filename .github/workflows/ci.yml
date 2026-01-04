@@ -17,7 +17,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest  # Запуск на свежем Ubuntu контейнере
-    
+
     steps:
       # Шаг 1: Получение кода из репозитория
       - name: Checkout code
@@ -34,6 +34,10 @@ jobs:
           java-version: '21'  # Конкретная версия Java
           distribution: 'temurin'  # Дистрибутив Java (Eclipse Temurin - популярный выбор)
           # Temurin рекомендуется из-за лицензионной чистоты и стабильности
+
+      # ИСПРАВЛЕНИЕ: Установка прав на выполнение для gradlew
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
 
       # Шаг 3: Настройка Gradle (кеширование, безопасность)
       - name: Setup Gradle
@@ -76,7 +80,7 @@ jobs:
   publish:
     needs: build  # Запускается только после успешного завершения job 'build'
     runs-on: ubuntu-latest
-    
+
     # Права доступа, необходимые для публикации в GitHub Packages
     permissions:
       contents: read  # Чтение репозитория
@@ -93,6 +97,10 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+
+      # ИСПРАВЛЕНИЕ: Здесь тоже нужны права
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
 
       # Шаг 3: Настройка Gradle
       - name: Setup Gradle
