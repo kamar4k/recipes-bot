@@ -98,9 +98,7 @@ jobs:
           push: true  # Публиковать образ в registry
           tags: |  # Теги для образа
             ${{ vars.DOCKER_REGISTRY }}/${{ vars.REGISTRY_OWNER }}/recipes-bot:${{ github.ref_name }}-${{ github.run_number }}
-            # Тег с версией: ghcr.io/username/recipes-bot:main-123
             ${{ vars.DOCKER_REGISTRY }}/${{ vars.REGISTRY_OWNER }}/recipes-bot:latest
-            # Тег latest для последней успешной сборки
           labels: |  # Метаданные образа
             version=${{ github.ref_name }}-${{ github.run_number }}  # Версия сборки
             build-date=${{ github.run_id }}  # Идентификатор запуска для трассировки
