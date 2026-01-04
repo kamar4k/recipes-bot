@@ -18,6 +18,11 @@ jobs:
   build:
     runs-on: ubuntu-latest  # Запуск на свежем Ubuntu контейнере
 
+    # Права доступа, необходимые для публикации в GitHub Packages
+    permissions:
+      contents: read  # Чтение репозитория
+      packages: write  # Запись в GitHub Container Registry
+
     steps:
       # Шаг 1: Получение кода из репозитория
       - name: Checkout code
@@ -75,45 +80,6 @@ jobs:
           path: build/libs/*.jar  # Путь к сгенерированным JAR-файлам
           retention-days: 30  # Автоматическое удаление через 30 дней (экономия места)
         # Артефакт можно скачать после завершения workflow из интерфейса GitHub
-
-  # Вторая джоба: Публикация артефактов
-  publish:
-    needs: build  # Запускается только после успешного завершения job 'build'
-    runs-on: ubuntu-latest
-
-    # Права доступа, необходимые для публикации в GitHub Packages
-    permissions:
-      contents: read  # Чтение репозитория
-      packages: write  # Запись в GitHub Container Registry
-
-    steps:
-      # Шаг 1: Получение кода (нужен для доступа к Gradle wrapper)
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # Шаг 2: Установка Java (аналогично job build)
-      - name: Setup JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-
-      # ИСПРАВЛЕНИЕ: Здесь тоже нужны права
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
-
-      # Шаг 3: Настройка Gradle
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-
-      # Шаг 4: Создание shadow JAR (дублируем для этой job)
-      - name: Build shadow JAR
-        run: ./gradlew shadowJar
-        env:
-          GITHUB_RUN_NUMBER: ${{ github.run_number }}
-        # Здесь создается тот же JAR, что и в job build
-        # Это нужно потому что артефакты между jobs не передаются автоматически
-        # Можно было бы использовать download-artifact, но проще пересобрать
 
       # Шаг 5: Авторизация в GitHub Container Registry (GHCR)
       - name: Log in to GitHub Container Registry
