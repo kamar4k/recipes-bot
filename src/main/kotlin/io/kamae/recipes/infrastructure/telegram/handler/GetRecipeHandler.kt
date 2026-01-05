@@ -5,6 +5,7 @@ import io.kamae.recipes.domain.exception.RecipeNotFoundException
 import io.kamae.recipes.infrastructure.telegram.dto.TelegramResponse
 import io.kamae.recipes.infrastructure.telegram.parser.TelegramMessageHandler
 import org.springframework.stereotype.Component
+import java.util.UUID
 
 @Component
 class GetRecipeHandler(
@@ -12,7 +13,8 @@ class GetRecipeHandler(
     private val telegramMessageHandler: TelegramMessageHandler): TelegramBotHandler {
     override fun executeCommand(text: String?): TelegramResponse {
         try {
-            val result = getRecipeUseCase.getRecipeById(checkNotNull(text))
+            val uuid = UUID.fromString(text)
+            val result = getRecipeUseCase.getRecipeById(uuid)
 
             return TelegramResponse(telegramMessageHandler.generateRecipeMessage(result))
         } catch (ex: RecipeNotFoundException) {

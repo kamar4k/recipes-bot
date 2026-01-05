@@ -8,6 +8,7 @@ import io.kamae.recipes.application.port.inbound.ListRecipesUseCase
 import io.kamae.recipes.application.port.outbound.RecipeRepositoryPort
 import io.kamae.recipes.domain.exception.RecipeNotFoundException
 import org.springframework.stereotype.Service
+import java.util.UUID
 
 @Service
 class RecipeService(
@@ -17,8 +18,8 @@ class RecipeService(
        return recipeRepositoryPort.saveRecipe(recipe)
     }
 
-    override fun getRecipeById(recipeId: String): RecipeDto {
-        return recipeRepositoryPort.getRecipeById(recipeId)?: throw RecipeNotFoundException(recipeId)
+    override fun getRecipeById(recipeId: UUID): RecipeDto {
+        return recipeRepositoryPort.getRecipeById(recipeId)?: throw RecipeNotFoundException(recipeId.toString())
     }
 
     override fun getRecipeInfoList(): List<RecipeShortInfoDto> {

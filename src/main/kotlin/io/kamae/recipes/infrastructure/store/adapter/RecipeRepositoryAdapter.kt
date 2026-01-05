@@ -7,6 +7,7 @@ import io.kamae.recipes.infrastructure.store.adapter.mapper.RecipeStoreMapper
 import io.kamae.recipes.infrastructure.store.repository.RecipeJpaRepository
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Component
+import java.util.UUID
 import kotlin.jvm.optionals.getOrNull
 
 @Component
@@ -20,7 +21,7 @@ class RecipeRepositoryAdapter(
         return recipeStoreMapper.mapSummaryListToDto(resultList)
     }
 
-    override fun getRecipeById(id: String): RecipeDto? {
+    override fun getRecipeById(id: UUID): RecipeDto? {
         val result = recipeJpaRepository.findById(id).getOrNull()
 
         return recipeStoreMapper.mapEntityToDto(result)

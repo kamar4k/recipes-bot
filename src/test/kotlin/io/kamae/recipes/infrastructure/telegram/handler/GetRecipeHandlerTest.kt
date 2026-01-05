@@ -33,16 +33,16 @@ class GetRecipeHandlerTest : AbstractTest() {
     fun executeCommand_success() {
         every { getRecipeUseCase.getRecipeById(TEST_RECIPE_ID) } returns TEST_RECIPE_DTO_WITH_ID
 
-        val result = getRecipeHandler.executeCommand(TEST_RECIPE_ID)
+        val result = getRecipeHandler.executeCommand(TEST_RECIPE_ID.toString())
 
         assertEquals(TELEGRAM_RESPONSE_TEXT, result.text)
     }
 
     @Test
     fun executeCommand_notFound() {
-        every { getRecipeUseCase.getRecipeById(TEST_RECIPE_ID) } throws RecipeNotFoundException(TEST_RECIPE_ID)
+        every { getRecipeUseCase.getRecipeById(TEST_RECIPE_ID) } throws RecipeNotFoundException(TEST_RECIPE_ID.toString())
 
-        val result = getRecipeHandler.executeCommand(TEST_RECIPE_ID)
+        val result = getRecipeHandler.executeCommand(TEST_RECIPE_ID.toString())
 
         assertEquals("Рецепт не найден", result.text)
     }

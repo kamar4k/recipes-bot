@@ -5,13 +5,14 @@ import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.time.LocalDateTime
+import java.util.*
 
 @Entity
 @Table(name = "recipe")
 class RecipeEntity(
     @Id
     @Column(name = "id")
-    val id: String,
+    val id: UUID,
     @Column(name = "title")
     val title: String,
     @Column(name = "ingredients")

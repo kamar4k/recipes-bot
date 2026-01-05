@@ -40,9 +40,9 @@ abstract class RecipeStoreMapper {
     )
     abstract fun mapSummaryToShortInfoDto(entity: RecipeSummaryProjection): RecipeShortInfoDto
 
-    protected fun generateUUID() = UUID.randomUUID().toString()
+    protected fun generateUUID(): UUID = UUID.randomUUID()
 
-    protected fun currentDateTime() = LocalDateTime.now()
+    protected fun currentDateTime(): LocalDateTime = LocalDateTime.now()
 
     @Named("parseIngredients")
     fun parseIngredients(ingredientsStr: String) = ingredientsStr.split("\n")

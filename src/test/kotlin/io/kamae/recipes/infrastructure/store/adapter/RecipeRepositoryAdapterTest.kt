@@ -2,7 +2,6 @@ package io.kamae.recipes.infrastructure.store.adapter
 
 import io.kamae.recipes.AbstractIntegrationTest
 import io.kamae.recipes.application.dto.RecipeDto
-import io.kamae.recipes.application.dto.RecipeShortInfoDto
 import io.mockk.every
 import io.mockk.mockkStatic
 import org.junit.jupiter.api.Test
@@ -10,7 +9,7 @@ import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.assertNull
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 import kotlin.test.assertEquals
 
 class RecipeRepositoryAdapterTest : AbstractIntegrationTest() {
@@ -46,7 +45,7 @@ class RecipeRepositoryAdapterTest : AbstractIntegrationTest() {
 
     @Test
     fun saveRecipe_success() {
-        var mockedUUID = UUID.fromString(TEST_RECIPE_ID)
+        val mockedUUID = TEST_RECIPE_ID
 
         var result: RecipeDto? = null
 
