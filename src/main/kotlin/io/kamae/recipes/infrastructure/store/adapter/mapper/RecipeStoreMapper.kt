@@ -4,13 +4,18 @@ import io.kamae.recipes.application.dto.RecipeDto
 import io.kamae.recipes.application.dto.RecipeShortInfoDto
 import io.kamae.recipes.infrastructure.store.entity.RecipeEntity
 import io.kamae.recipes.infrastructure.store.entity.RecipeSummaryProjection
+import io.kamae.recipes.infrastructure.util.UniqueValueGenerator
 import org.mapstruct.*
 import org.mapstruct.MappingConstants.ComponentModel
+import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDateTime
 import java.util.UUID
 
 @Mapper(componentModel = ComponentModel.SPRING)
 abstract class RecipeStoreMapper {
+
+    @Autowired
+    private lateinit var uniqueValueGenerator: UniqueValueGenerator
 
     @BeanMapping(ignoreByDefault = true, nullValueMappingStrategy = NullValueMappingStrategy.RETURN_NULL)
     @Mappings(
@@ -40,9 +45,9 @@ abstract class RecipeStoreMapper {
     )
     abstract fun mapSummaryToShortInfoDto(entity: RecipeSummaryProjection): RecipeShortInfoDto
 
-    protected fun generateUUID(): UUID = UUID.randomUUID()
+    protected fun generateUUID(): UUID = uniqueValueGenerator.generateId()
 
-    protected fun currentDateTime(): LocalDateTime = LocalDateTime.now()
+    protected fun currentDateTime(): LocalDateTime = uniqueValueGenerator.currentDateTime()
 
     @Named("parseIngredients")
     fun parseIngredients(ingredientsStr: String) = ingredientsStr.split("\n")

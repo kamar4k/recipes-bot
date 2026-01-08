@@ -1,0 +1,30 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-1
+      author: kamae
+      changes:
+        - createTable:
+            tableName: bot_user
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: username
+                  type: VARCHAR(256)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: role
+                  type: VARCHAR(256)
+                  constraints:
+                    nullable: false
+        - createIndex:
+            indexName: bot_user_role_idx
+            tableName: bot_user
+            columns:
+              - column:
+                  name: role

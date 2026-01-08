@@ -1,9 +1,11 @@
 package io.kamae.recipes.infrastructure.telegram.bot
 
 import io.kamae.recipes.infrastructure.config.TelegramBotConfig
+import io.kamae.recipes.infrastructure.security.annotation.SecuredTelegramListener
 import io.kamae.recipes.infrastructure.telegram.dto.TelegramResponse
 import io.kamae.recipes.infrastructure.telegram.handler.factory.TelegramBotHandlerFactory
 import io.kamae.recipes.infrastructure.telegram.parser.TelegramMessageHandler
+import org.springframework.security.authorization.AuthorizationDeniedException
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
@@ -12,6 +14,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
 
 @Component
+@SecuredTelegramListener
 class RecipesBot(
     private val telegramBotConfig: TelegramBotConfig,
     private val telegramMessageHandler: TelegramMessageHandler,
@@ -35,7 +38,10 @@ class RecipesBot(
                     sendMessage(chatId, response)
                 }
             )
-        } catch (ex: Exception) {
+        } catch (ex: AuthorizationDeniedException) {
+            sendMessage(chatId, toResponse("У вас не хватает прав на выполнение команды"))
+        }
+        catch (ex: Exception) {
             sendMessage(chatId, toResponse(ex.message ?: "Ошибка обработки запроса"))
         }
     }

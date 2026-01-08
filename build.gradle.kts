@@ -16,18 +16,29 @@ repositories {
 }
 
 dependencies {
+    //Spring
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    //Spring-security
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.security:spring-security-config")
+    //Aspect
+    implementation("org.springframework.boot:spring-boot-starter-aop")
+    //Kotlin
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    runtimeOnly("com.h2database:h2")
+    //MapStruct
     implementation("org.mapstruct:mapstruct:1.6.3")
     annotationProcessor("org.mapstruct:mapstruct-processor:1.6.3")
     kapt("org.mapstruct:mapstruct-processor:1.6.3")
-    implementation("org.liquibase:liquibase-core:5.0.1")
+    //Telegram
     implementation("org.telegram:telegrambots:6.9.7.1")
+    //Arrow
     implementation("io.arrow-kt:arrow-core:1.2.4")
+    //Store
     implementation("org.postgresql:postgresql:42.7.3")
+    runtimeOnly("com.h2database:h2")
+    implementation("org.liquibase:liquibase-core:5.0.1")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")

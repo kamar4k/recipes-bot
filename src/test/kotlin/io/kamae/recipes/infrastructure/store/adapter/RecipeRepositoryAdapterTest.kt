@@ -1,21 +1,22 @@
 package io.kamae.recipes.infrastructure.store.adapter
 
+import com.ninjasquad.springmockk.SpykBean
 import io.kamae.recipes.AbstractIntegrationTest
-import io.kamae.recipes.application.dto.RecipeDto
+import io.kamae.recipes.infrastructure.util.UniqueValueGenerator
 import io.mockk.every
-import io.mockk.mockkStatic
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.assertNull
 import org.springframework.beans.factory.annotation.Autowired
-import java.time.LocalDateTime
-import java.util.*
 import kotlin.test.assertEquals
 
 class RecipeRepositoryAdapterTest : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var recipeRepositoryAdapter: RecipeRepositoryAdapter
+
+    @SpykBean
+    private lateinit var uniqueValueGenerator: UniqueValueGenerator
 
     @Test
     fun getRecipeInfoList_success() {
@@ -45,16 +46,12 @@ class RecipeRepositoryAdapterTest : AbstractIntegrationTest() {
 
     @Test
     fun saveRecipe_success() {
-        val mockedUUID = TEST_RECIPE_ID
+        every { uniqueValueGenerator.generateId() } returns TEST_RECIPE_ID
+        every { uniqueValueGenerator.currentDateTime() } returns TEST_CREATE_DATE
 
-        var result: RecipeDto? = null
+        val result = recipeRepositoryAdapter.saveRecipe(TEST_RECIPE_DTO)
 
-        mockkStatic(UUID::class, LocalDateTime::class) {
-            every { UUID.randomUUID() } returns mockedUUID
-            every { LocalDateTime.now() } returns TEST_CREATE_DATE
-            result = recipeRepositoryAdapter.saveRecipe(TEST_RECIPE_DTO)
-        }
-        assertNotNull(result?.id)
+        assertNotNull(result.id)
         assertEquals(TEST_RECIPE_DTO_WITH_ID, result)
 
         val saved = recipeJpaRepository.findAll().firstOrNull()
