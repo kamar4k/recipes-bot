@@ -18,6 +18,9 @@ import org.telegram.telegrambots.meta.api.objects.Update
 class SecuredTelegramListenerAspect(
     private val authenticationManager: AuthenticationManager,
 ) {
+    init {
+        logger.debug("SecuredTelegramListenerAspect bean initialized")
+    }
     companion object {
         private const val SECURED_ANNOTATION =
             "io.kamae.recipes.infrastructure.security.annotation.SecuredTelegramListener"
@@ -25,7 +28,7 @@ class SecuredTelegramListenerAspect(
         private val logger = LoggerFactory.getLogger(SecuredTelegramListenerAspect::class.java)
     }
 
-    @Before("@within($SECURED_ANNOTATION) && execution(void onUpdateReceived(*)) && args(update)")
+    @Before("@within($SECURED_ANNOTATION) && execution(* processUpdate(*)) && args(update)")
     fun fillAuthorizationContext(joinPoint: JoinPoint, update: Update?) {
         val username = extractUsername(update)
         logger.debug("#auth extracted username=$username for update event")

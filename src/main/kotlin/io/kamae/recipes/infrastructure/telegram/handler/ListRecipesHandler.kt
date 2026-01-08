@@ -10,10 +10,10 @@ import org.springframework.stereotype.Component
 @PreAuthorize("hasRole('READER')")
 class ListRecipesHandler(
     private val listRecipesUseCase: ListRecipesUseCase
-): TelegramBotHandler {
-    override fun executeCommand(text: String?): TelegramResponse {
+) : TelegramBotHandler {
+    override fun executeCommand(text: String?, chatId: Long): TelegramResponse {
         val results = listRecipesUseCase.getRecipeInfoList()
 
-        return TelegramResponse("Выберите рецепт", results.map { TelegramButton(it.title, "/get ${it.id}") })
+        return TelegramResponse("Выберите рецепт", chatId, results.map { TelegramButton(it.title, "/get ${it.id}") })
     }
 }

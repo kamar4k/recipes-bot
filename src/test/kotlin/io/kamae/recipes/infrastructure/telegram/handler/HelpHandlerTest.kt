@@ -9,7 +9,7 @@ class HelpHandlerTest : AbstractTest() {
 
     @Test
     fun executeCommand_success() {
-        val result = helpHandler.executeCommand(null)
+        val result = helpHandler.executeCommand(null, TEST_CHAT_ID)
 
         val expectedMessage =
             "Список команд:\n" +

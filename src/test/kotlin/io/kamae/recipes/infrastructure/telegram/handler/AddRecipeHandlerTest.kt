@@ -31,7 +31,7 @@ class AddRecipeHandlerTest: AbstractTest() {
 
     @Test
     fun executeCommand_success() {
-        val result = addRecipeHandler.executeCommand(TELEGRAM_COMMAND_TEXT)
+        val result = addRecipeHandler.executeCommand(TELEGRAM_COMMAND_TEXT, TEST_CHAT_ID)
 
         assertEquals("Рецепт $TEST_RECIPE_TITLE добавлен с идентификатором $TEST_RECIPE_ID", result.text)
     }

@@ -11,7 +11,7 @@ class DefaultHandlerTest: AbstractTest() {
 
     @Test
     fun executeCommand_success() {
-        val result = defaultHandler.executeCommand(TELEGRAM_COMMAND_TEXT)
+        val result = defaultHandler.executeCommand(TELEGRAM_COMMAND_TEXT, TEST_CHAT_ID)
 
         assertEquals("Я Вас не понял. Для получения списка возможных команд введите /help", result.text)
     }

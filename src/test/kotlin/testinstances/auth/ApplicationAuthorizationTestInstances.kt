@@ -3,12 +3,14 @@ package testinstances.auth
 import arrow.core.Either
 import io.kamae.recipes.infrastructure.security.UserRole
 import io.kamae.recipes.infrastructure.security.annotation.SecuredTelegramListener
+import io.kamae.recipes.infrastructure.telegram.bot.delegate.TelegramBotDelegate
+import io.kamae.recipes.infrastructure.telegram.dto.TelegramResponse
 import org.springframework.boot.test.context.TestComponent
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.Primary
 import org.springframework.security.access.prepost.PreAuthorize
-import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.api.objects.Update
 
 
@@ -16,13 +18,14 @@ import org.telegram.telegrambots.meta.api.objects.Update
 @ComponentScan(basePackageClasses = [ApplicationAuthorizationTestConfiguration::class])
 class ApplicationAuthorizationTestConfiguration {
     @Bean
-    fun securedTelegramBot(
+    @Primary
+    fun securedTelegramBotDelegate(
         guestTestInstance: GuestTestInstance,
         readerTestInstance: ReaderTestInstance,
         editorTestInstance: EditorTestInstance,
         adminTestInstance: AdminTestInstance,
-    ): TestSecuredTelegramBot =
-        TestSecuredTelegramBot(
+    ): TestSecuredTelegramBotDelegate =
+        TestSecuredTelegramBotDelegate(
             mapOf(
                 UserRole.ROLE_GUEST to guestTestInstance,
                 UserRole.ROLE_READER to readerTestInstance,
@@ -33,14 +36,10 @@ class ApplicationAuthorizationTestConfiguration {
 }
 
 @SecuredTelegramListener
-open class TestSecuredTelegramBot(
+open class TestSecuredTelegramBotDelegate(
     private val securedClassesMap: Map<UserRole, AbstractTestAuthorizationInstance>
-) : TelegramLongPollingBot("TOKEN") {
-    override fun getBotUsername(): String {
-        return "USERNAME"
-    }
-
-    override fun onUpdateReceived(p0: Update?) {
+) : TelegramBotDelegate {
+    override fun processUpdate(update: Update): TelegramResponse {
         val results: MutableMap<UserRole, Either<Throwable, Boolean>> = mutableMapOf()
 
         results[UserRole.ROLE_GUEST] = Either.catch { securedClassesMap[UserRole.ROLE_GUEST]!!.returnTrue() }
@@ -49,6 +48,8 @@ open class TestSecuredTelegramBot(
         results[UserRole.ROLE_ADMIN] = Either.catch { securedClassesMap[UserRole.ROLE_ADMIN]!!.returnTrue() }
 
         fixResult(results)
+
+        return TelegramResponse("", 1234L)
     }
 
     open fun fixResult(result: MutableMap<UserRole, Either<Throwable, Boolean>>) {

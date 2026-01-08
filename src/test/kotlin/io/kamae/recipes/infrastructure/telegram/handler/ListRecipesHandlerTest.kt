@@ -28,7 +28,7 @@ class ListRecipesHandlerTest : AbstractTest() {
     fun executeCommand_success() {
         every { listRecipesUseCase.getRecipeInfoList() } returns TEST_RECIPE_SHORT_INFO_LIST
 
-        val result = listRecipesHandler.executeCommand(null)
+        val result = listRecipesHandler.executeCommand(null, TEST_CHAT_ID)
 
         assertEquals("Выберите рецепт", result.text)
         assertNotNull(result.buttons)

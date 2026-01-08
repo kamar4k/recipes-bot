@@ -12,10 +12,10 @@ class AddRecipeHandler(
     private val telegramMessageParser: TelegramMessageHandler,
     private val addRecipeUseCase: AddRecipeUseCase
 ): TelegramBotHandler {
-    override fun executeCommand(text: String?): TelegramResponse {
+    override fun executeCommand(text: String?, chatId: Long): TelegramResponse {
         val parsedRecipe = telegramMessageParser.parseRecipe(checkNotNull(text))
         val saved = addRecipeUseCase.addRecipe(parsedRecipe)
 
-        return TelegramResponse("Рецепт ${saved.title} добавлен с идентификатором ${saved.id}")
+        return TelegramResponse("Рецепт ${saved.title} добавлен с идентификатором ${saved.id}", chatId)
     }
 }
