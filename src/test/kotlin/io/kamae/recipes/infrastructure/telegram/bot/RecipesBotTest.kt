@@ -4,12 +4,14 @@ import arrow.core.Either
 import com.ninjasquad.springmockk.MockkBean
 import com.ninjasquad.springmockk.SpykBean
 import io.kamae.recipes.AbstractIntegrationTest
+import io.kamae.recipes.infrastructure.security.aspect.SecuredTelegramListenerAspect
 import io.kamae.recipes.infrastructure.telegram.dto.TelegramParsedRequest
 import io.kamae.recipes.infrastructure.telegram.dto.TelegramResponse
 import io.kamae.recipes.infrastructure.telegram.handler.TelegramBotHandler
 import io.kamae.recipes.infrastructure.telegram.handler.factory.TelegramBotHandlerFactory
 import io.kamae.recipes.infrastructure.telegram.parser.TelegramMessageHandler
 import io.mockk.every
+import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -19,6 +21,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import org.springframework.security.authorization.AuthorizationDeniedException
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery
 import org.telegram.telegrambots.meta.api.objects.MaybeInaccessibleMessage
@@ -36,6 +39,9 @@ class RecipesBotTest : AbstractIntegrationTest() {
     @MockkBean
     private lateinit var telegramBotHandlerFactory: TelegramBotHandlerFactory
 
+    @MockkBean
+    private lateinit var securedTelegramListenerAspect: SecuredTelegramListenerAspect
+
     private val telegramBotHandler: TelegramBotHandler = mockk<TelegramBotHandler>()
 
     private val update: Update = mockk<Update>()
@@ -45,6 +51,8 @@ class RecipesBotTest : AbstractIntegrationTest() {
 
     @BeforeEach
     fun mockkHandler() {
+        justRun { securedTelegramListenerAspect.fillAuthorizationContext(any(), any()) }
+
         every { telegramBotHandlerFactory.getHandler(TELEGRAM_COMMAND_TEXT) } returns telegramBotHandler
         every { update.message } returns message
         every { callbackQuery.message } returns callbackMessage
@@ -79,6 +87,8 @@ class RecipesBotTest : AbstractIntegrationTest() {
         verify {
             recipesBot.execute(SendMessage(TEST_CHAT_ID.toString(), TELEGRAM_RESPONSE_TEXT))
         }
+
+        verifyAuthRunning()
     }
 
     @Test
@@ -103,6 +113,8 @@ class RecipesBotTest : AbstractIntegrationTest() {
         verify {
             recipesBot.execute(SendMessage(TEST_CHAT_ID.toString(), TELEGRAM_RESPONSE_TEXT))
         }
+
+        verifyAuthRunning()
     }
 
 
@@ -126,6 +138,31 @@ class RecipesBotTest : AbstractIntegrationTest() {
         verify {
             recipesBot.execute(SendMessage(TEST_CHAT_ID.toString(), expectedResponse))
         }
+
+        verifyAuthRunning()
+    }
+
+    @Test
+    fun onUpdateReceived_authFail() {
+        every { update.hasMessage() } returns true
+        every { message.chatId } returns TEST_CHAT_ID
+        every { message.text } returns TELEGRAM_MESSAGE_TEXT
+        every { telegramMessageHandler.parseTelegramMessage(TELEGRAM_MESSAGE_TEXT) } returns Either.Right(
+            TelegramParsedRequest(
+                TELEGRAM_COMMAND_TEXT, null
+            )
+        )
+        every { telegramBotHandler.executeCommand(any()) } throws AuthorizationDeniedException("")
+
+        every { recipesBot.execute(any<SendMessage>()) } returns null
+
+        recipesBot.onUpdateReceived(update)
+
+        verify {
+            recipesBot.execute(SendMessage(TEST_CHAT_ID.toString(), "У вас не хватает прав на выполнение команды"))
+        }
+
+        verifyAuthRunning()
     }
 
     @Test
@@ -136,12 +173,9 @@ class RecipesBotTest : AbstractIntegrationTest() {
         val error = assertThrows<IllegalStateException> { recipesBot.onUpdateReceived(update) }
 
         assertEquals("Не удалось определить chatId и text в сообщении", error.message)
-    }
 
-    private fun errorTestCases(): List<Arguments> = listOf(
-        Arguments.of("error", "error"),
-        Arguments.of(null, "Ошибка обработки запроса")
-    )
+        verifyAuthRunning()
+    }
 
     @Test
     fun onUpdateReceived_failParse() {
@@ -163,5 +197,15 @@ class RecipesBotTest : AbstractIntegrationTest() {
         verify {
             recipesBot.execute(SendMessage(TEST_CHAT_ID.toString(), TELEGRAM_RESPONSE_TEXT))
         }
+        verifyAuthRunning()
+    }
+
+    private fun errorTestCases(): List<Arguments> = listOf(
+        Arguments.of("error", "error"),
+        Arguments.of(null, "Ошибка обработки запроса")
+    )
+
+    private fun verifyAuthRunning() {
+        verify { securedTelegramListenerAspect.fillAuthorizationContext(any(), update) }
     }
 }

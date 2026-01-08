@@ -3,6 +3,7 @@ package io.kamae.recipes.infrastructure.telegram.handler.factory
 import io.kamae.recipes.infrastructure.telegram.enums.TelegramBotCommand
 import io.kamae.recipes.infrastructure.telegram.handler.TelegramBotHandler
 import org.springframework.stereotype.Component
+import org.springframework.util.ClassUtils
 
 interface TelegramBotHandlerFactory {
     fun getHandler(command: String): TelegramBotHandler
@@ -17,7 +18,7 @@ class TelegramBotHandlerFactoryImpl(handlers: List<TelegramBotHandler>): Telegra
         val tempMap = mutableMapOf<String, TelegramBotHandler>()
 
         TelegramBotCommand.entries.map { command ->
-            handlers.firstOrNull {it.javaClass == command.handlerClass} ?.run {
+            handlers.firstOrNull { ClassUtils.getUserClass(it.javaClass) == command.handlerClass} ?.run {
                 tempMap.put(command.command, this)
             }
         }
@@ -28,6 +29,4 @@ class TelegramBotHandlerFactoryImpl(handlers: List<TelegramBotHandler>): Telegra
     override fun getHandler(command: String): TelegramBotHandler {
         return handlersMap[command] ?: error("Команда $command не найдена")
     }
-
-
 }

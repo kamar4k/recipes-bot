@@ -3,9 +3,11 @@ package io.kamae.recipes.infrastructure.telegram.handler
 import io.kamae.recipes.application.port.inbound.AddRecipeUseCase
 import io.kamae.recipes.infrastructure.telegram.dto.TelegramResponse
 import io.kamae.recipes.infrastructure.telegram.parser.TelegramMessageHandler
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Component
 
 @Component
+@PreAuthorize("hasRole('EDITOR')")
 class AddRecipeHandler(
     private val telegramMessageParser: TelegramMessageHandler,
     private val addRecipeUseCase: AddRecipeUseCase
