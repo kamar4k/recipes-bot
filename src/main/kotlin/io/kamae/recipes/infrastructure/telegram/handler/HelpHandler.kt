@@ -8,13 +8,13 @@ import org.springframework.stereotype.Component
 @Component
 @PreAuthorize("hasRole('GUEST')")
 class HelpHandler : TelegramBotHandler {
-    override fun executeCommand(text: String?): TelegramResponse {
+    override fun executeCommand(text: String?, chatId: Long): TelegramResponse {
         val msg =
             "Список команд:\n" + TelegramBotCommand.entries.filter { it.desc != null }
                 .joinToString("\n") {
                     "- ${it.command} ${it.desc}"
                 }
 
-        return TelegramResponse(msg)
+        return TelegramResponse(msg, chatId)
     }
 }

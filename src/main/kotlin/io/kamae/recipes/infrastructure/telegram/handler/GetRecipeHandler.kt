@@ -13,14 +13,14 @@ import java.util.UUID
 class GetRecipeHandler(
     private val getRecipeUseCase: GetRecipeUseCase,
     private val telegramMessageHandler: TelegramMessageHandler): TelegramBotHandler {
-    override fun executeCommand(text: String?): TelegramResponse {
+    override fun executeCommand(text: String?, chatId: Long): TelegramResponse {
         try {
             val uuid = UUID.fromString(text)
             val result = getRecipeUseCase.getRecipeById(uuid)
 
-            return TelegramResponse(telegramMessageHandler.generateRecipeMessage(result))
+            return TelegramResponse(telegramMessageHandler.generateRecipeMessage(result), chatId)
         } catch (ex: RecipeNotFoundException) {
-            return TelegramResponse("Рецепт не найден")
+            return TelegramResponse("Рецепт не найден", chatId)
         }
     }
 }

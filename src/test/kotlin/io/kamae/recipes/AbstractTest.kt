@@ -11,8 +11,8 @@ import java.util.UUID
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ActiveProfiles("test")
 abstract class AbstractTest {
-
     companion object {
+        const val TEST_CHAT_ID: Long = 1234L
         val TEST_RECIPE_ID: UUID = UUID.fromString("e07446c5-b71b-4c48-a483-1f8eefd80f6e")
         const val TEST_RECIPE_TITLE = "Recipe Title"
         const val TEST_RECIPE_INSTRUCTIONS = "Step1\nStep2\nStep3\nStep4"

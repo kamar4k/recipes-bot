@@ -71,13 +71,13 @@ class RecipesBotTest : AbstractIntegrationTest() {
         every { update.hasMessage() } returns true
         every { message.chatId } returns TEST_CHAT_ID
         every { message.text } returns TELEGRAM_MESSAGE_TEXT
-        every { telegramMessageHandler.parseTelegramMessage(TELEGRAM_MESSAGE_TEXT) } returns Either.Right(
+        every { telegramMessageHandler.parseTelegramMessage(TELEGRAM_MESSAGE_TEXT, TEST_CHAT_ID) } returns Either.Right(
             TelegramParsedRequest(
                 TELEGRAM_COMMAND_TEXT, null
             )
         )
-        every { telegramBotHandler.executeCommand(any()) } returns TelegramResponse(
-            TELEGRAM_RESPONSE_TEXT
+        every { telegramBotHandler.executeCommand(any(), TEST_CHAT_ID) } returns TelegramResponse(
+            TELEGRAM_RESPONSE_TEXT, TEST_CHAT_ID
         )
 
         every { recipesBot.execute(any<SendMessage>()) } returns null
@@ -97,13 +97,13 @@ class RecipesBotTest : AbstractIntegrationTest() {
         every { update.hasCallbackQuery() } returns true
         every { callbackMessage.chatId } returns TEST_CHAT_ID
         every { callbackQuery.data } returns TELEGRAM_MESSAGE_TEXT
-        every { telegramMessageHandler.parseTelegramMessage(TELEGRAM_MESSAGE_TEXT) } returns Either.Right(
+        every { telegramMessageHandler.parseTelegramMessage(TELEGRAM_MESSAGE_TEXT, TEST_CHAT_ID) } returns Either.Right(
             TelegramParsedRequest(
                 TELEGRAM_COMMAND_TEXT, null
             )
         )
-        every { telegramBotHandler.executeCommand(any()) } returns TelegramResponse(
-            TELEGRAM_RESPONSE_TEXT
+        every { telegramBotHandler.executeCommand(any(), TEST_CHAT_ID) } returns TelegramResponse(
+            TELEGRAM_RESPONSE_TEXT, TEST_CHAT_ID
         )
 
         every { recipesBot.execute(any<SendMessage>()) } returns null
@@ -124,12 +124,12 @@ class RecipesBotTest : AbstractIntegrationTest() {
         every { update.hasMessage() } returns true
         every { message.chatId } returns TEST_CHAT_ID
         every { message.text } returns TELEGRAM_MESSAGE_TEXT
-        every { telegramMessageHandler.parseTelegramMessage(TELEGRAM_MESSAGE_TEXT) } returns Either.Right(
+        every { telegramMessageHandler.parseTelegramMessage(TELEGRAM_MESSAGE_TEXT, TEST_CHAT_ID) } returns Either.Right(
             TelegramParsedRequest(
                 TELEGRAM_COMMAND_TEXT, null
             )
         )
-        every { telegramBotHandler.executeCommand(any()) } throws RuntimeException(errorMessage)
+        every { telegramBotHandler.executeCommand(any(), TEST_CHAT_ID) } throws RuntimeException(errorMessage)
 
         every { recipesBot.execute(any<SendMessage>()) } returns null
 
@@ -147,12 +147,12 @@ class RecipesBotTest : AbstractIntegrationTest() {
         every { update.hasMessage() } returns true
         every { message.chatId } returns TEST_CHAT_ID
         every { message.text } returns TELEGRAM_MESSAGE_TEXT
-        every { telegramMessageHandler.parseTelegramMessage(TELEGRAM_MESSAGE_TEXT) } returns Either.Right(
+        every { telegramMessageHandler.parseTelegramMessage(TELEGRAM_MESSAGE_TEXT, TEST_CHAT_ID) } returns Either.Right(
             TelegramParsedRequest(
                 TELEGRAM_COMMAND_TEXT, null
             )
         )
-        every { telegramBotHandler.executeCommand(any()) } throws AuthorizationDeniedException("")
+        every { telegramBotHandler.executeCommand(any(), TEST_CHAT_ID) } throws AuthorizationDeniedException("")
 
         every { recipesBot.execute(any<SendMessage>()) } returns null
 
@@ -182,9 +182,9 @@ class RecipesBotTest : AbstractIntegrationTest() {
         every { update.hasMessage() } returns true
         every { message.chatId } returns TEST_CHAT_ID
         every { message.text } returns TELEGRAM_MESSAGE_TEXT
-        every { telegramMessageHandler.parseTelegramMessage(TELEGRAM_MESSAGE_TEXT) } returns Either.Left(
+        every { telegramMessageHandler.parseTelegramMessage(TELEGRAM_MESSAGE_TEXT, TEST_CHAT_ID) } returns Either.Left(
             TelegramResponse(
-                TELEGRAM_RESPONSE_TEXT
+                TELEGRAM_RESPONSE_TEXT, TEST_CHAT_ID
             )
         )
 

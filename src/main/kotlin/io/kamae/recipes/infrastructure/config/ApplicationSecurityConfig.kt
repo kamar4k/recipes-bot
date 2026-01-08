@@ -5,7 +5,11 @@ import io.kamae.recipes.infrastructure.security.UserRole
 import io.kamae.recipes.infrastructure.security.annotation.SecuredTelegramListener
 import io.kamae.recipes.infrastructure.security.aspect.SecuredTelegramListenerAspect
 import io.kamae.recipes.infrastructure.store.repository.ApplicationUserRepository
-import org.springframework.context.annotation.*
+import io.kamae.recipes.infrastructure.telegram.bot.delegate.TelegramBotDelegate
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.DependsOn
+import org.springframework.context.annotation.EnableAspectJAutoProxy
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.context.event.EventListener
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy
@@ -14,11 +18,11 @@ import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.core.userdetails.UserDetailsService
-import org.telegram.telegrambots.bots.TelegramLongPollingBot
 
 
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true, proxyTargetClass = true)
+@EnableAspectJAutoProxy(proxyTargetClass = true)
 class ApplicationSecurityConfig {
     @Bean
     fun roleHierarchy(): RoleHierarchy {
@@ -55,7 +59,7 @@ class ApplicationSecurityConfig {
         val annotatedBeans = applicationContext.getBeansWithAnnotation(SecuredTelegramListener::class.java)
 
         val incorrectBeans = annotatedBeans.filter {
-            it.value !is TelegramLongPollingBot
+            it.value !is TelegramBotDelegate
         }
 
         if (incorrectBeans.isNotEmpty()) {
@@ -65,7 +69,7 @@ class ApplicationSecurityConfig {
 
             msgBuilder.insert(
                 0,
-                "Annotation ${SecuredTelegramListener::class.java.name} used in not TelegramLongPollingBot implementations:\n"
+                "Annotation ${SecuredTelegramListener::class.java.name} used in not TelegramBotDelegate implementations:\n"
             )
 
             error(msgBuilder.toString())

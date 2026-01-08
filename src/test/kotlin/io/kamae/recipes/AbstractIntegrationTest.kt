@@ -10,11 +10,8 @@ import java.time.LocalDateTime
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = [RecipesApplication::class])
 abstract class AbstractIntegrationTest: AbstractTest() {
     companion object {
-        const val TEST_CHAT_ID: Long = 1234L
-
         private const val TEST_RECIPE_INGREDIENTS_SERIALIZED = "ingridient1\ningridient2 3\ning3 200g"
         private const val TEST_ANOTHER_RECIPE_INSTRUCTIONS = "Step1\nStep2\nStep123"
-        private val TEST_ANOTHER_RECIPE_INGREDIENTS = listOf("ingridient1", "ingridient2 3", "ing3 200g")
         private const val TEST_ANOTHER_RECIPE_INGREDIENTS_SERIALIZED = "ingridient1\ningridient2 3\ning3 200g"
 
         val TEST_CREATE_DATE: LocalDateTime = LocalDateTime.of(2026, 1, 2, 12, 54, 16)

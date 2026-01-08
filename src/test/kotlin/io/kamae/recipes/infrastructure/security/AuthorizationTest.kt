@@ -23,14 +23,15 @@ import org.telegram.telegrambots.meta.api.objects.Message
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.api.objects.User
 import testinstances.auth.ApplicationAuthorizationTestConfiguration
-import testinstances.auth.TestSecuredTelegramBot
+import testinstances.auth.TestSecuredTelegramBotDelegate
 import java.util.*
 import kotlin.reflect.KClass
 
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    classes = [RecipesApplication::class, ApplicationAuthorizationTestConfiguration::class]
+    classes = [RecipesApplication::class, ApplicationAuthorizationTestConfiguration::class],
 )
+
 class AuthorizationTest : AbstractTest() {
 
     companion object {
@@ -41,7 +42,7 @@ class AuthorizationTest : AbstractTest() {
     private lateinit var applicationUserRepository: ApplicationUserRepository
 
     @SpykBean
-    private lateinit var testSecuredTelegramBot: TestSecuredTelegramBot
+    private lateinit var testSecuredTelegramBot: TestSecuredTelegramBotDelegate
 
     private val update = mockk<Update>()
     private val message = mockk<Message>()
@@ -69,7 +70,7 @@ class AuthorizationTest : AbstractTest() {
             applicationUserRepository.save(userEntity)
         }
 
-        testSecuredTelegramBot.onUpdateReceived(update)
+        testSecuredTelegramBot.processUpdate(update)
 
         slot.captured.forEach {
             val expectedElement = expected[it.key]!!

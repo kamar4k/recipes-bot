@@ -41,12 +41,12 @@ class TelegramMessageHandler {
         return sb.toString()
     }
 
-    fun parseTelegramMessage(text: String?): Either<TelegramResponse, TelegramParsedRequest> {
+    fun parseTelegramMessage(text: String?, chatId: Long): Either<TelegramResponse, TelegramParsedRequest> {
             if (text.isNullOrBlank()) {
-                return Either.Left(TelegramResponse(MISSING_TEXT_MSG))
+                return Either.Left(TelegramResponse(MISSING_TEXT_MSG, chatId))
             } else {
                 if (!text.matches(Regex(MESSAGE_PATTERN))) {
-                    return Either.Left(TelegramResponse(INCORRECT_COMMAND_MSG))
+                    return Either.Left(TelegramResponse(INCORRECT_COMMAND_MSG, chatId))
                 } else {
                     val matchedCommand = Regex(COMMAND_PATTERN).find(text)!!
 

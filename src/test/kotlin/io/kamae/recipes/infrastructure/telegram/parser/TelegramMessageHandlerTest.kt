@@ -39,7 +39,7 @@ class TelegramMessageHandlerTest : AbstractTest() {
     @ParameterizedTest
     @MethodSource("parseMessageSuccessCases")
     fun parseTelegramMessage_success(message: String, expectedRequest: TelegramParsedRequest) {
-        val result = telegramMessageHandler.parseTelegramMessage(message)
+        val result = telegramMessageHandler.parseTelegramMessage(message, TEST_CHAT_ID)
 
         assertTrue(result.isRight())
         assertEquals(expectedRequest, result.getOrNull())
@@ -48,7 +48,7 @@ class TelegramMessageHandlerTest : AbstractTest() {
     @ParameterizedTest
     @MethodSource("parseMessageErrorCases")
     fun parseTelegramMessage_error(message: String?, expectedResponse: TelegramResponse) {
-        val result = telegramMessageHandler.parseTelegramMessage(message)
+        val result = telegramMessageHandler.parseTelegramMessage(message, TEST_CHAT_ID)
 
         assertTrue(result.isLeft())
         assertEquals(expectedResponse, result.leftOrNull())
@@ -61,11 +61,11 @@ class TelegramMessageHandlerTest : AbstractTest() {
     )
 
     private fun parseMessageErrorCases(): List<Arguments> = listOf(
-        Arguments.of("/command-123", TelegramResponse(INCORRECT_COMMAND_MSG)),
-        Arguments.of("/command ", TelegramResponse(INCORRECT_COMMAND_MSG)),
-        Arguments.of("command", TelegramResponse(INCORRECT_COMMAND_MSG)),
-        Arguments.of("/", TelegramResponse(INCORRECT_COMMAND_MSG)),
-        Arguments.of("", TelegramResponse(MISSING_TEXT_MSG)),
-        Arguments.of(null, TelegramResponse(MISSING_TEXT_MSG))
+        Arguments.of("/command-123", TelegramResponse(INCORRECT_COMMAND_MSG, TEST_CHAT_ID)),
+        Arguments.of("/command ", TelegramResponse(INCORRECT_COMMAND_MSG, TEST_CHAT_ID)),
+        Arguments.of("command", TelegramResponse(INCORRECT_COMMAND_MSG, TEST_CHAT_ID)),
+        Arguments.of("/", TelegramResponse(INCORRECT_COMMAND_MSG, TEST_CHAT_ID)),
+        Arguments.of("", TelegramResponse(MISSING_TEXT_MSG, TEST_CHAT_ID)),
+        Arguments.of(null, TelegramResponse(MISSING_TEXT_MSG, TEST_CHAT_ID))
     )
 }
