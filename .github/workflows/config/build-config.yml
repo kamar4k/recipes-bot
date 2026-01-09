@@ -1,0 +1,4 @@
+# Конфигурация сборки
+registry: "ghcr.io"
+registry_owner: "kamar4k"
+java_version: "21"
