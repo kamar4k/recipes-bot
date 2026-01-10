@@ -26,6 +26,7 @@ jobs:
   deploy:
     uses: kamar4k/pipelines/.github/workflows/common-deploy.yml@cd
     with:
+      service: recipes-bot
       version: ${{ github.event.inputs.version }}
       environment: ${{ github.event.inputs.environment }}
       config_repo: ${{ github.event.inputs.config_repo }}
