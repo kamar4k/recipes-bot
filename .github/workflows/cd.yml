@@ -24,7 +24,6 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
     uses: kamar4k/pipelines/.github/workflows/common-deploy.yml@cd
     with:
       version: ${{ github.event.inputs.version }}
