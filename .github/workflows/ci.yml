@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   build:
-    uses: kamar4k/pipelines/.github/workflows/common-build.yml@init
+    uses: kamar4k/pipelines/.github/workflows/common-build.yml@v1
     with:
       branch: ${{ github.ref_name }}
     secrets:
