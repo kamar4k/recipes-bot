@@ -30,5 +30,3 @@ jobs:
       environment: ${{ github.event.inputs.environment }}
       config_repo: ${{ github.event.inputs.config_repo }}
       config_path: ""  # или путь, если конфиги лежат в поддиректории
-    secrets:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
