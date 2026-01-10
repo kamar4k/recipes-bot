@@ -25,21 +25,11 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
-    steps:
-      # Читаем конфигурацию из файла
-      - name: Read service configuration
-        id: read_config
-        run: |
-          SERVICE_NAME=$(yq eval '.service' .github/workflow/config/deploy-config.yml)
-          echo "SERVICE_NAME=$SERVICE_NAME" >> $GITHUB_OUTPUT
-
-      # Вызываем универсальную джобу
-      - name: Run universal deployment
-        uses: kamar4k/pipelines/.github/workflows/common-deploy.yml@cd
-        with:
-          version: ${{ github.event.inputs.version }}
-          environment: ${{ github.event.inputs.environment }}
-          service: ${{ steps.read_config.outputs.SERVICE_NAME }}
-          config_repo: ${{ github.event.inputs.config_repo }}
-          config_path: ""  # или путь, если конфиги лежат в поддиректории
+    uses: kamar4k/pipelines/.github/workflows/common-deploy.yml@cd
+    with:
+      version: ${{ github.event.inputs.version }}
+      environment: ${{ github.event.inputs.environment }}
+      config_repo: ${{ github.event.inputs.config_repo }}
+      config_path: ""  # или путь, если конфиги лежат в поддиректории
+    secrets:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
