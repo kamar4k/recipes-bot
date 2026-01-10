@@ -16,16 +16,6 @@ on:
           - test
           - production
         default: 'production'
-      registry:
-        description: 'Registry url'
-        required: true
-        type: string
-        default: 'ghcr.io'
-      owner:
-        description: 'Owner for registry'
-        required: true
-        type: string
-        default: 'kamar4k'
       config_repo:
         description: 'repository with configs'
         required: true
@@ -53,5 +43,3 @@ jobs:
           service: ${{ steps.read_config.outputs.SERVICE_NAME }}
           config_repo: ${{ github.event.inputs.config_repo }}
           config_path: ""  # или путь, если конфиги лежат в поддиректории
-          docker_registry: ${{ github.event.inputs.registry }}
-          registry_owner: ${{ github.event.inputs.owner }}
