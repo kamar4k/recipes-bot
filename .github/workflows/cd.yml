@@ -1,102 +1,57 @@
-name: CD Pipeline
+name: Deploy
 
-# Триггер: только ручной запуск с параметрами
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Версия для деплоя (формат: ветка-номерСборки, например: main-123)'
+        description: 'Version for deploy (format: build number, e.g.: 1.0.0-1)'
         required: true
         type: string
-        default: 'master-123'
-        # Это значение должно соответствовать тегу Docker образа
-        # Пример: ghcr.io/username/recipes-bot:main-123
+        default: '1.0.0-1'
       environment:
-        description: 'Окружение для деплоя'
+        description: 'Environment for deployment'
         required: true
-        type: choice  # Выпадающий список в UI
+        type: choice
         options:
-          - staging  # Тестовое окружение
-          - production  # Продакшен окружение
-        default: 'staging'
+          - test
+          - production
+        default: 'production'
+      registry:
+        description: 'Registry url'
+        required: true
+        type: string
+        default: 'ghcr.io'
+      owner:
+        description: 'Owner for registry'
+        required: true
+        type: string
+        default: 'kamar4k'
+      config_repo:
+        description: 'repository with configs'
+        required: true
+        type: string
+        default: 'kamar4k/deploy-configurations'
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest  # Используем runner на GitHub
+    runs-on: ubuntu-latest
 
     steps:
-      # Шаг 1: Настройка SSH для подключения к целевому серверу
-      - name: Configure SSH
+      # Читаем конфигурацию из файла
+      - name: Read service configuration
+        id: read_config
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+          SERVICE_NAME=$(yq eval '.service' .github/workflow/config/deploy-config.yml)
+          echo "SERVICE_NAME=$SERVICE_NAME" >> $GITHUB_OUTPUT
 
-      # Шаг 2: Создание .env файла с секретами для приложения
-      - name: Create environment file
-        run: |
-          cat > .env << EOF
-          BOT_TOKEN=${{ secrets.BOT_TOKEN }}
-          DATABASE_URL=${{ vars.DATABASE_URL }}
-          DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }}
-          DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}
-          ENVIRONMENT=${{ github.event.inputs.environment }}
-          VERSION=${{ github.event.inputs.version }}
-          EOF
-        # Этот файл будет использован для передачи переменных в Docker контейнер
-        # Секреты подставляются на этапе выполнения workflow
-
-      # Шаг 3: Деплой на удаленный сервер через SSH
-      - name: Deploy to server
-        uses: appleboy/ssh-action@v1.0.0  # Экшен для выполнения команд по SSH
+      # Вызываем универсальную джобу
+      - name: Run universal deployment
+        uses: kamar4k/pipelines/.github/workflows/common-deploy.yml@cd
         with:
-          host: ${{ secrets.SSH_HOST }}  # IP или домен сервера
-          username: ${{ secrets.SSH_USERNAME }}  # Пользователь SSH
-          key: ${{ secrets.SSH_PRIVATE_KEY }}  # Приватный ключ
-          script: |  # Многострочный скрипт для выполнения на сервере
-            echo "${{ secrets.GH_TOKEN }}" | docker login ${{ vars.DOCKER_REGISTRY }} -u ${{ github.actor }} --password-stdin
-            docker stop recipes-bot || true
-            docker rm recipes-bot || true
-            mkdir -p /opt/recipes-bot/config
-            
-            cat > /opt/recipes-bot/config/.env << 'EOF'
-            BOT_TOKEN=${{ secrets.BOT_TOKEN }}
-            DATABASE_URL=${{ vars.DATABASE_URL }}
-            DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }}
-            DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}
-            ENVIRONMENT=${{ github.event.inputs.environment }}
-            VERSION=${{ github.event.inputs.version }}
-            EOF
-            
-            docker run -d \
-              --name recipes-bot \
-              --add-host=host.docker.internal:host-gateway \
-              --restart unless-stopped \
-              --env-file /opt/recipes-bot/config/.env \
-              -v /opt/recipes-bot/logs:/app/logs \
-              ${{ vars.DOCKER_REGISTRY }}/${{ vars.REGISTRY_OWNER }}/recipes-bot:${{ github.event.inputs.version }}
-            
-            docker image prune -f
-
-      # Шаг 4: Проверка успешности деплоя
-      - name: Verify deployment
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            sleep 30
-            
-            echo "=== Docker Container Status ==="
-            docker ps --filter "name=recipes-bot" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-            
-            echo "=== Recent Logs ==="
-            docker logs recipes-bot --tail 20
-            
-            echo "=== Container Health ==="
-            docker inspect recipes-bot --format='{{.State.Health.Status}}' 2>/dev/null || echo "No healthcheck configured"
-            
-            echo "=== Resource Usage ==="
-            docker stats recipes-bot --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}"
+          version: ${{ github.event.inputs.version }}
+          environment: ${{ github.event.inputs.environment }}
+          service: ${{ steps.read_config.outputs.SERVICE_NAME }}
+          config_repo: ${{ github.event.inputs.config_repo }}
+          config_path: ""  # или путь, если конфиги лежат в поддиректории
+          docker_registry: ${{ github.event.inputs.registry }}
+          registry_owner: ${{ github.event.inputs.owner }}
