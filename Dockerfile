@@ -5,8 +5,9 @@ WORKDIR /app
 RUN useradd -m -u 1001 appuser
 
 # Создаем директорию для логов
-RUN mkdir -p logs
-RUN mkdir -p logs/archived
+RUN mkdir -p logs && \
+    mkdir -p logs/archived && \
+    chown -R appuser:appuser logs
 
 USER appuser
 
