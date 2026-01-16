@@ -3,6 +3,8 @@ bot:
   token: ${BOT_TOKEN}
 
 spring:
+  application:
+    name: recipes-bot
   datasource:
     url: ${DATABASE_URL}
     driver-class-name: ${DATABASE_DRIVER_CLASS_NAME:org.postgresql.Driver}

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Имя приложения из application.properties -->
+    <springProperty scope="context" name="APP_NAME" source="spring.application.name" defaultValue="recipes-bot"/>
+    <springProperty scope="context" name="LOGGING_LEVEL" source="logging.level.root" defaultValue="INFO"/>
+    <!-- Определяем путь для логов -->
+    <property name="LOG_PATH" value="./logs"/>
+
+    <!-- Pattern для логов -->
+    <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"/>
+
+    <!-- Консольный аппендер (для разработки) -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Файловый аппендер с динамическим именем -->
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <!-- Динамическое имя файла с timestamp запуска -->
+        <file>${LOG_PATH}/${APP_NAME}.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Root логгер -->
+    <root level="${LOGGING_LEVEL}">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+        <!--
+          The 'fileNamePattern' defines the naming convention for the *archived* log files.
+          %d{yyyy-MM-dd} adds the date.
+          %i adds the rolling index/number.
+          The rollover period (daily in this case) is inferred from the date pattern.
+        -->
+        <fileNamePattern>${LOG_DIR}/archived/${APP_NAME}-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+
+        <!-- Optional: Maximum size for each log file before rolling over (e.g., 10MB) -->
+        <maxFileSize>10MB</maxFileSize>
+
+        <!-- Optional: Maximum number of archive files to keep (e.g., 7 days) -->
+        <maxHistory>30</maxHistory>
+
+        <!-- Optional: Total size cap for all archive files -->
+        <totalSizeCap>1GB</totalSizeCap>
+    </rollingPolicy>
+</configuration>
