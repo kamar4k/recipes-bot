@@ -6,6 +6,7 @@ RUN useradd -m -u 1001 appuser
 
 # Создаем директорию для логов
 RUN mkdir -p logs
+RUN mkdir -p logs/archived
 
 USER appuser
 
