@@ -2,6 +2,11 @@ name: Build and publish
 
 on:
   workflow_dispatch:
+    inputs:
+      is_release:
+        description: "Это релизный билд"
+        required: true
+        default: false
 
 permissions:
   contents: write
