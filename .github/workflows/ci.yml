@@ -5,6 +5,7 @@ on:
     inputs:
       is_release:
         description: "Это релизный билд"
+        type: boolean
         required: true
         default: false
 
