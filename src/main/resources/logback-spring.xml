@@ -4,7 +4,7 @@
     <springProperty scope="context" name="APP_NAME" source="spring.application.name" defaultValue="recipes-bot"/>
     <springProperty scope="context" name="LOGGING_LEVEL" source="logging.level.root" defaultValue="INFO"/>
     <!-- Определяем путь для логов -->
-    <property name="LOG_PATH" value="./logs"/>
+    <springProperty scope="context" name="LOG_PATH" source="environment.logback-folder-path"/>
 
     <!-- Pattern для логов -->
     <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"/>

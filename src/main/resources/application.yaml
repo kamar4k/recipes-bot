@@ -2,6 +2,9 @@ bot:
   name: ${BOT_NAME:recipes-bot}
   token: ${BOT_TOKEN}
 
+environment:
+  logback-folder-path: ${LOGBACK_FOLDER_PATH:./logs}
+
 spring:
   application:
     name: recipes-bot
