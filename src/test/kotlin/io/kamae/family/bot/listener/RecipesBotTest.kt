@@ -1,0 +1,216 @@
+package io.kamae.family.bot.listener
+
+import arrow.core.Either
+import com.ninjasquad.springmockk.MockkBean
+import com.ninjasquad.springmockk.SpykBean
+import io.kamae.family.bot.AbstractIntegrationTest
+import io.kamae.family.bot.domain.telegram.dto.TelegramParsedRequest
+import io.kamae.family.bot.domain.telegram.dto.TelegramResponse
+import io.kamae.family.bot.domain.telegram.parser.TelegramRecipesMessageHandler
+import io.kamae.family.bot.security.AuthorizationUtils
+import io.kamae.family.bot.security.aspect.SecuredTelegramListenerAspect
+import io.kamae.family.bot.service.api.ActionService
+import io.kamae.family.bot.service.factory.ActionServiceFactory
+import io.mockk.every
+import io.mockk.justRun
+import io.mockk.mockk
+import io.mockk.verify
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
+import org.springframework.security.authorization.AuthorizationDeniedException
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery
+import org.telegram.telegrambots.meta.api.objects.MaybeInaccessibleMessage
+import org.telegram.telegrambots.meta.api.objects.Message
+import org.telegram.telegrambots.meta.api.objects.Update
+
+class RecipesBotTest : AbstractIntegrationTest() {
+
+    @SpykBean
+    private lateinit var recipesBot: RecipesBot
+
+    @MockkBean
+    private lateinit var telegramMessageHandler: TelegramRecipesMessageHandler
+
+    @MockkBean
+    private lateinit var telegramBotHandlerFactory: ActionServiceFactory
+
+    @MockkBean
+    private lateinit var securedTelegramListenerAspect: SecuredTelegramListenerAspect
+
+    @MockkBean
+    private lateinit var authorizationUtils: AuthorizationUtils
+
+    private val actionService: ActionService = mockk<ActionService>()
+
+    private val update: Update = mockk<Update>()
+    private val message: Message = mockk<Message>()
+    private val callbackQuery: CallbackQuery = mockk<CallbackQuery>()
+    private val callbackMessage: MaybeInaccessibleMessage = mockk<MaybeInaccessibleMessage>()
+
+    @BeforeEach
+    fun mockkHandler() {
+        justRun { securedTelegramListenerAspect.fillAuthorizationContext(any(), any()) }
+
+        every { telegramBotHandlerFactory.getActionService(TELEGRAM_COMMAND_TEXT) } returns actionService
+        every { update.message } returns message
+        every { callbackQuery.message } returns callbackMessage
+        every { update.callbackQuery } returns callbackQuery
+        every { authorizationUtils.getUserName() } returns TEST_AUTHOR
+    }
+
+    @Test
+    fun getBotUsername_success() {
+        val result = recipesBot.botUsername
+
+        assertEquals("family-bot", result)
+    }
+
+    @Test
+    fun onUpdateReceived_successMessage() {
+        every { update.hasMessage() } returns true
+        every { message.chatId } returns TEST_CHAT_ID
+        every { message.text } returns TELEGRAM_MESSAGE_TEXT
+        every { telegramMessageHandler.parseTelegramMessage(TELEGRAM_MESSAGE_TEXT, TEST_CHAT_ID) } returns Either.Right(
+            TelegramParsedRequest(
+                TELEGRAM_COMMAND_TEXT, null
+            )
+        )
+        every { actionService.executeAndGetResponse(any()) } returns TelegramResponse(
+            TELEGRAM_RESPONSE_TEXT, TEST_CHAT_ID
+        )
+
+        every { recipesBot.execute(any<SendMessage>()) } returns null
+
+        recipesBot.onUpdateReceived(update)
+
+        verify {
+            recipesBot.execute(SendMessage(TEST_CHAT_ID.toString(), TELEGRAM_RESPONSE_TEXT))
+        }
+
+        verifyAuthRunning()
+    }
+
+    @Test
+    fun onUpdateReceived_successCallback() {
+        every { update.hasMessage() } returns false
+        every { update.hasCallbackQuery() } returns true
+        every { callbackMessage.chatId } returns TEST_CHAT_ID
+        every { callbackQuery.data } returns TELEGRAM_MESSAGE_TEXT
+        every { telegramMessageHandler.parseTelegramMessage(TELEGRAM_MESSAGE_TEXT, TEST_CHAT_ID) } returns Either.Right(
+            TelegramParsedRequest(
+                TELEGRAM_COMMAND_TEXT, null
+            )
+        )
+        every { actionService.executeAndGetResponse(any()) } returns TelegramResponse(
+            TELEGRAM_RESPONSE_TEXT, TEST_CHAT_ID
+        )
+
+        every { recipesBot.execute(any<SendMessage>()) } returns null
+
+        recipesBot.onUpdateReceived(update)
+
+        verify {
+            recipesBot.execute(SendMessage(TEST_CHAT_ID.toString(), TELEGRAM_RESPONSE_TEXT))
+        }
+
+        verifyAuthRunning()
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("errorTestCases")
+    fun onUpdateReceived_commonFail(errorMessage: String?, expectedResponse: String) {
+        every { update.hasMessage() } returns true
+        every { message.chatId } returns TEST_CHAT_ID
+        every { message.text } returns TELEGRAM_MESSAGE_TEXT
+        every { telegramMessageHandler.parseTelegramMessage(TELEGRAM_MESSAGE_TEXT, TEST_CHAT_ID) } returns Either.Right(
+            TelegramParsedRequest(
+                TELEGRAM_COMMAND_TEXT, null
+            )
+        )
+        every { actionService.executeAndGetResponse(any()) } throws RuntimeException(errorMessage)
+
+        every { recipesBot.execute(any<SendMessage>()) } returns null
+
+        recipesBot.onUpdateReceived(update)
+
+        verify {
+            recipesBot.execute(SendMessage(TEST_CHAT_ID.toString(), expectedResponse))
+        }
+
+        verifyAuthRunning()
+    }
+
+    @Test
+    fun onUpdateReceived_authFail() {
+        every { update.hasMessage() } returns true
+        every { message.chatId } returns TEST_CHAT_ID
+        every { message.text } returns TELEGRAM_MESSAGE_TEXT
+        every { telegramMessageHandler.parseTelegramMessage(TELEGRAM_MESSAGE_TEXT, TEST_CHAT_ID) } returns Either.Right(
+            TelegramParsedRequest(
+                TELEGRAM_COMMAND_TEXT, null
+            )
+        )
+        every { actionService.executeAndGetResponse(any()) } throws AuthorizationDeniedException("")
+
+        every { recipesBot.execute(any<SendMessage>()) } returns null
+
+        recipesBot.onUpdateReceived(update)
+
+        verify {
+            recipesBot.execute(SendMessage(TEST_CHAT_ID.toString(), "У вас не хватает прав на выполнение команды"))
+        }
+
+        verifyAuthRunning()
+    }
+
+    @Test
+    fun onUpdateReceived_chatIdNotFound() {
+        every { update.hasMessage() } returns false
+        every { update.hasCallbackQuery() } returns false
+
+        val error = assertThrows<IllegalStateException> { recipesBot.onUpdateReceived(update) }
+
+        assertEquals("Не удалось определить chatId и text в сообщении", error.message)
+
+        verifyAuthRunning()
+    }
+
+    @Test
+    fun onUpdateReceived_failParse() {
+        every { update.hasMessage() } returns true
+        every { message.chatId } returns TEST_CHAT_ID
+        every { message.text } returns TELEGRAM_MESSAGE_TEXT
+        every { telegramMessageHandler.parseTelegramMessage(TELEGRAM_MESSAGE_TEXT, TEST_CHAT_ID) } returns Either.Left(
+            TelegramResponse(
+                TELEGRAM_RESPONSE_TEXT, TEST_CHAT_ID
+            )
+        )
+
+        every { recipesBot.execute(any<SendMessage>()) } returns null
+
+        recipesBot.onUpdateReceived(update)
+
+
+        verify(exactly = 0) { telegramBotHandlerFactory.getActionService(any()) }
+        verify {
+            recipesBot.execute(SendMessage(TEST_CHAT_ID.toString(), TELEGRAM_RESPONSE_TEXT))
+        }
+        verifyAuthRunning()
+    }
+
+    private fun errorTestCases(): List<Arguments> = listOf(
+        Arguments.of("error", "error"),
+        Arguments.of(null, "Ошибка обработки запроса")
+    )
+
+    private fun verifyAuthRunning() {
+        verify { securedTelegramListenerAspect.fillAuthorizationContext(any(), update) }
+    }
+}

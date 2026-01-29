@@ -12,6 +12,17 @@ spring:
   h2:
     console:
       enabled: true
+  cloud:
+    openfeign:
+      client:
+        config:
+          recipes-service:
+            connect-timeout: 500
+            read-timeout: 500
+
+external-service:
+  recipes:
+    host: http://localhost:9092
 
 logging:
   level:
