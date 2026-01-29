@@ -15,6 +15,6 @@ spring:
 
 logging:
   level:
-    root: DEBUG
+    root: ${LOGGING_LEVEL:INFO}
     org.hibernate.sql: DEBUG
     org.hibernate.orm.jdbc.bind: TRACE

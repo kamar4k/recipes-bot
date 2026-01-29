@@ -1,13 +1,12 @@
 bot:
-  name: ${BOT_NAME:recipes-bot}
+  name: ${BOT_NAME:family-bot}
   token: ${BOT_TOKEN}
 
 environment:
   logback-folder-path: ${LOGBACK_FOLDER_PATH:./logs}
-
 spring:
   application:
-    name: recipes-bot
+    name: family-bot
   datasource:
     url: ${DATABASE_URL}
     driver-class-name: ${DATABASE_DRIVER_CLASS_NAME:org.postgresql.Driver}
@@ -21,9 +20,32 @@ spring:
     properties:
       hibernate:
         format_sql: ${FORMAT_SQL:true}
+  cloud:
+    openfeign:
+      client:
+        config:
+          recipes-service:
+            connect-timeout: ${RECIPES_SERVICE_TIMEOUT:10000}
+            read-timeout: ${RECIPES_SERVICE_TIMEOUT:10000}
+            logger-level: full
+  jackson:
+    default-property-inclusion: non_null
+
+external-service:
+  recipes:
+    host: ${RECIPES_SERVICE_HOST:http://recipes-app-svc:8080}
 
 logging:
   level:
     org.hibernate.sql: ${SQL_LOGGING_LEVEL:DEBUG}
     org.hibernate.orm.jdbc.bind: ${SQL_BIND_LOGGING_LEVEL:TRACE}
     root: ${LOGGING_LEVEL:INFO}
+    org.zalando.logbook: ${LOGBOOK_LEVEL:TRACE}
+    http.logbook: ${HTTP_LOGBOOK_LEVEL:INFO}
+
+logbook:
+  format.style: http
+  filter.enabled: true
+  predicate:
+    include:
+      - path: /**

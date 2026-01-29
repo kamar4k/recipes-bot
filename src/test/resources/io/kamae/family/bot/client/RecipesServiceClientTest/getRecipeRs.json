@@ -1,0 +1,11 @@
+{
+  "id": "e07446c5-b71b-4c48-a483-1f8eefd80f6e",
+  "title": "Recipe Title",
+  "ingredients": [
+    "ingridient1",
+    "ingridient2 3",
+    "ing3 200g"
+  ],
+  "instructions": "Step1\nStep2\nStep3\nStep4",
+  "author": "user"
+}

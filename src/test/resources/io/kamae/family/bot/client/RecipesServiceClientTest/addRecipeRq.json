@@ -1,0 +1,10 @@
+{
+  "title": "Recipe Title",
+  "ingredients": [
+    "ingridient1",
+    "ingridient2 3",
+    "ing3 200g"
+  ],
+  "instructions": "Step1\nStep2\nStep3\nStep4",
+  "author": "user"
+}
