@@ -66,7 +66,12 @@ tasks.test {
 }
 
 tasks.shadowJar {
-    archiveBaseName.set("recipes-bot")
+    manifest {
+        attributes(
+            "Main-Class" to "io.kamae.family.bot.FamilyBotApplication"
+        )
+    }
+    archiveBaseName.set("family-bot")
     archiveClassifier.set("")
     archiveVersion.set("${project.version}-${System.getenv("GITHUB_RUN_NUMBER") ?: "local"}")
 }
