@@ -11,16 +11,19 @@ plugins {
 group = "io.kamae.family"
 
 repositories {
+    maven {
+        name = "GitHubPackages"
+        url = uri("https://maven.pkg.github.com/kamar4k/helper-bom")
+        credentials {
+            username = System.getenv("GITHUB_ACTOR") ?: project.findProperty("github.username") as String?
+            password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("github.token") as String?
+        }
+    }
     mavenCentral()
 }
 
-dependencyManagement {
-    imports {
-        mavenBom("org.springframework.cloud:spring-cloud-dependencies:2025.0.0")
-    }
-}
-
 dependencies {
+    implementation(platform("io.github.kamar4k:helper-bom:1.1.0+"))
     //Spring
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-web")
@@ -36,21 +39,21 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
     //Telegram
-    implementation("org.telegram:telegrambots:6.9.7.1")
+    implementation("org.telegram:telegrambots")
     //Arrow
-    implementation("io.arrow-kt:arrow-core:2.0.0")
+    implementation("io.arrow-kt:arrow-core")
     //Store
-    implementation("org.postgresql:postgresql:42.7.3")
+    implementation("org.postgresql:postgresql")
     runtimeOnly("com.h2database:h2")
-    implementation("org.liquibase:liquibase-core:5.0.1")
-    implementation("org.zalando:logbook-spring-boot-starter:3.7.2")
-    implementation("org.zalando:logbook-openfeign:3.7.2")
+    implementation("org.liquibase:liquibase-core")
+    implementation("org.zalando:logbook-spring-boot-starter")
+    implementation("org.zalando:logbook-openfeign")
 
     testImplementation("org.springframework.cloud:spring-cloud-starter-contract-stub-runner")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testImplementation("io.mockk:mockk:1.14.7")
-    testImplementation("com.ninja-squad:springmockk:4.0.2")
+    testImplementation("io.mockk:mockk")
+    testImplementation("com.ninja-squad:springmockk")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
