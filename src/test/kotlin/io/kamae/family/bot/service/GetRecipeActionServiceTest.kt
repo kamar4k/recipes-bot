@@ -34,26 +34,29 @@ class GetRecipeActionServiceTest : AbstractTest() {
     fun executeAndGetResponse_success() {
         every { recipesServiceClient.getRecipe(TEST_RECIPE_ID) } returns TEST_RECIPE_DTO_WITH_ID
 
-        val result = getRecipeActionService.executeAndGetResponse(formAction(text = TEST_RECIPE_ID.toString()))
+        val result = getRecipeActionService.executeAndGetResult(formAction(text = TEST_RECIPE_ID.toString()))
 
 
         verify { recipesServiceClient.getRecipe(TEST_RECIPE_ID) }
 
         val expectedResponse = getTestResourcesAsString("telegramResponseText").replace("\r\n", "\n")
-        assertEquals(TEST_CHAT_ID, result.chatId)
-        assertNull(result.buttons)
-        assertEquals(expectedResponse, result.text)
+
+        assertNull(result.nextQuestion)
+        assertEquals(TEST_CHAT_ID, result.telegramResponse.chatId)
+        assertNull(result.telegramResponse.buttons)
+        assertEquals(expectedResponse, result.telegramResponse.text)
     }
 
     @Test
     fun executeAndGetResponse_incorrectUUID() {
-        val result = getRecipeActionService.executeAndGetResponse(formAction(text = "1234"))
+        val result = getRecipeActionService.executeAndGetResult(formAction(text = "1234"))
 
-        assertEquals(TEST_CHAT_ID, result.chatId)
-        assertNull(result.buttons)
+        assertNull(result.nextQuestion)
+        assertEquals(TEST_CHAT_ID, result.telegramResponse.chatId)
+        assertNull(result.telegramResponse.buttons)
         assertEquals(
             "Некорректный идентификатор рецепта (1234). Требуется идентификатор формата UUID",
-            result.text
+            result.telegramResponse.text
         )
     }
 
@@ -62,12 +65,12 @@ class GetRecipeActionServiceTest : AbstractTest() {
     fun executeAndGetResponse_apiError(exception: Exception, expectedMessage: String) {
         every { recipesServiceClient.getRecipe(TEST_RECIPE_ID) } throws exception
 
-        val result = getRecipeActionService.executeAndGetResponse(formAction(text = TEST_RECIPE_ID.toString()))
+        val result = getRecipeActionService.executeAndGetResult(formAction(text = TEST_RECIPE_ID.toString()))
 
         verify { recipesServiceClient.getRecipe(TEST_RECIPE_ID) }
-        assertEquals(TEST_CHAT_ID, result.chatId)
-        assertNull(result.buttons)
-        assertEquals(expectedMessage, result.text)
+        assertEquals(TEST_CHAT_ID, result.telegramResponse.chatId)
+        assertNull(result.telegramResponse.buttons)
+        assertEquals(expectedMessage, result.telegramResponse.text)
     }
 
     private fun apiErrorCases() = listOf(

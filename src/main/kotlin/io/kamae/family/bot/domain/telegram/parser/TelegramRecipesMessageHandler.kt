@@ -1,8 +1,8 @@
 package io.kamae.family.bot.domain.telegram.parser
 
-import arrow.core.Either
-import io.kamae.family.bot.domain.telegram.dto.TelegramParsedRequest
+import io.kamae.family.bot.domain.telegram.CommandContext
 import io.kamae.family.bot.domain.telegram.dto.TelegramResponse
+import io.kamae.family.bot.util.exception.TelegramException
 import org.springframework.stereotype.Component
 
 @Component
@@ -16,12 +16,12 @@ class TelegramRecipesMessageHandler {
         private const val MISSING_TEXT_MSG = "Отсутствует текстовое сообщение"
     }
 
-    fun parseTelegramMessage(text: String?, chatId: Long): Either<TelegramResponse, TelegramParsedRequest> {
+    fun parseMessageAndGetContext(text: String?, chatId: Long): CommandContext {
             if (text.isNullOrBlank()) {
-                return Either.Left(TelegramResponse(MISSING_TEXT_MSG, chatId))
+                throw TelegramException(TelegramResponse(MISSING_TEXT_MSG, chatId))
             } else {
                 if (!text.matches(Regex(MESSAGE_PATTERN))) {
-                    return Either.Left(TelegramResponse(INCORRECT_COMMAND_MSG, chatId))
+                    throw TelegramException(TelegramResponse(INCORRECT_COMMAND_MSG, chatId))
                 } else {
                     val matchedCommand = Regex(COMMAND_PATTERN).find(text)!!
 
@@ -32,7 +32,7 @@ class TelegramRecipesMessageHandler {
                         text.substring(matchedCommand.range.last + 2)
                     }
 
-                    return Either.Right(TelegramParsedRequest(command, data))
+                    return CommandContext(command, data)
                 }
             }
     }

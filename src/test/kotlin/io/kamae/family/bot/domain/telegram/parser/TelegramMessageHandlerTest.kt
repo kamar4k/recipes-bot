@@ -1,10 +1,11 @@
 package io.kamae.family.bot.domain.telegram.parser
 
 import io.kamae.family.bot.AbstractTest
-import io.kamae.family.bot.domain.telegram.dto.TelegramParsedRequest
+import io.kamae.family.bot.domain.telegram.CommandContext
 import io.kamae.family.bot.domain.telegram.dto.TelegramResponse
+import io.kamae.family.bot.util.exception.TelegramException
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -19,26 +20,26 @@ class TelegramMessageHandlerTest : AbstractTest() {
 
     @ParameterizedTest
     @MethodSource("parseMessageSuccessCases")
-    fun parseTelegramMessage_success(message: String, expectedRequest: TelegramParsedRequest) {
-        val result = telegramMessageHandler.parseTelegramMessage(message, TEST_CHAT_ID)
+    fun parseTelegramMessage_success(message: String, expectedRequest: CommandContext) {
+        val result = telegramMessageHandler.parseMessageAndGetContext(message, TEST_CHAT_ID)
 
-        assertTrue(result.isRight())
-        assertEquals(expectedRequest, result.getOrNull())
+        assertEquals(expectedRequest, result)
     }
 
     @ParameterizedTest
     @MethodSource("parseMessageErrorCases")
     fun parseTelegramMessage_error(message: String?, expectedResponse: TelegramResponse) {
-        val result = telegramMessageHandler.parseTelegramMessage(message, TEST_CHAT_ID)
+        val error = assertThrows<TelegramException> {
+            telegramMessageHandler.parseMessageAndGetContext(message, TEST_CHAT_ID)
+        }
 
-        assertTrue(result.isLeft())
-        assertEquals(expectedResponse, result.leftOrNull())
+        assertEquals(expectedResponse, error.telegramResponse)
     }
 
     private fun parseMessageSuccessCases(): List<Arguments> = listOf(
-        Arguments.of("/command", TelegramParsedRequest("/command", null)),
-        Arguments.of("/some-command", TelegramParsedRequest("/some-command", null)),
-        Arguments.of("/some-command get recipe", TelegramParsedRequest("/some-command", "get recipe"))
+        Arguments.of("/command", CommandContext("/command", null)),
+        Arguments.of("/some-command", CommandContext("/some-command", null)),
+        Arguments.of("/some-command get recipe", CommandContext("/some-command", "get recipe"))
     )
 
     private fun parseMessageErrorCases(): List<Arguments> = listOf(
