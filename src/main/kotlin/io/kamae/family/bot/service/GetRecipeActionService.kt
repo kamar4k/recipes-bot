@@ -4,9 +4,10 @@ import arrow.core.Either
 import feign.FeignException.NotFound
 import io.kamae.family.bot.client.RecipesServiceClient
 import io.kamae.family.bot.client.dto.RecipeRsDto
+import io.kamae.family.bot.domain.telegram.TelegramActionResult
 import io.kamae.family.bot.domain.telegram.dto.TelegramAction
-import io.kamae.family.bot.domain.telegram.dto.TelegramResponse
 import io.kamae.family.bot.service.api.ActionService
+import io.kamae.family.bot.service.api.ActionService.Companion.prepareResultWithText
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Service
 import java.util.*
@@ -14,16 +15,17 @@ import java.util.*
 @Service
 @PreAuthorize("hasRole('READER')")
 class GetRecipeActionService(private val recipesServiceClient: RecipesServiceClient) : ActionService {
-    override fun executeAndGetResponse(telegramAction: TelegramAction): TelegramResponse {
-        val textId = telegramAction.telegramParsedRequest.text
+    override fun executeAndGetResult(telegramAction: TelegramAction): TelegramActionResult {
+        val textId = telegramAction.commandContext.text
         val parsedUUID = Either.catch { UUID.fromString(textId) }
 
         return parsedUUID.fold(
             {
-                prepareResponseWithText(
+                prepareResultWithText(
                     "Некорректный идентификатор рецепта ($textId). Требуется идентификатор формата UUID",
                     telegramAction
                 )
+
             },
             {
                 getRecipeById(it, textId, telegramAction)
@@ -35,21 +37,21 @@ class GetRecipeActionService(private val recipesServiceClient: RecipesServiceCli
         it: UUID,
         textId: String?,
         telegramAction: TelegramAction
-    ): TelegramResponse {
+    ): TelegramActionResult {
         val result = Either.catch { recipesServiceClient.getRecipe(it) }
 
         return result.fold({ ex ->
             when {
-                ex is NotFound -> prepareResponseWithText(
+                ex is NotFound -> prepareResultWithText(
                     "Рецепт с идентификатором $textId не найден",
                     telegramAction
                 )
 
-                else -> prepareResponseWithText("Неизвестная ошибка: ${ex.message}", telegramAction)
+                else -> prepareResultWithText("Неизвестная ошибка: ${ex.message}", telegramAction)
             }
         },
             { rs ->
-                prepareResponseWithText(generateRecipeMessage(rs), telegramAction)
+                prepareResultWithText(generateRecipeMessage(rs), telegramAction)
             }
         )
     }

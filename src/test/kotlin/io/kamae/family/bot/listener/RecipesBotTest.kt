@@ -1,16 +1,18 @@
 package io.kamae.family.bot.listener
 
-import arrow.core.Either
 import com.ninjasquad.springmockk.MockkBean
 import com.ninjasquad.springmockk.SpykBean
 import io.kamae.family.bot.AbstractIntegrationTest
-import io.kamae.family.bot.domain.telegram.dto.TelegramParsedRequest
+import io.kamae.family.bot.domain.telegram.CommandContext
+import io.kamae.family.bot.domain.telegram.TelegramActionResult
 import io.kamae.family.bot.domain.telegram.dto.TelegramResponse
 import io.kamae.family.bot.domain.telegram.parser.TelegramRecipesMessageHandler
+import io.kamae.family.bot.provider.api.ContextProvider
 import io.kamae.family.bot.security.AuthorizationUtils
 import io.kamae.family.bot.security.aspect.SecuredTelegramListenerAspect
 import io.kamae.family.bot.service.api.ActionService
 import io.kamae.family.bot.service.factory.ActionServiceFactory
+import io.kamae.family.bot.util.exception.TelegramException
 import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
@@ -46,6 +48,9 @@ class RecipesBotTest : AbstractIntegrationTest() {
     @MockkBean
     private lateinit var authorizationUtils: AuthorizationUtils
 
+    @MockkBean
+    private lateinit var contextProvider: ContextProvider
+
     private val actionService: ActionService = mockk<ActionService>()
 
     private val update: Update = mockk<Update>()
@@ -56,6 +61,10 @@ class RecipesBotTest : AbstractIntegrationTest() {
     @BeforeEach
     fun mockkHandler() {
         justRun { securedTelegramListenerAspect.fillAuthorizationContext(any(), any()) }
+        justRun { contextProvider.appendAnswer(TEST_CHAT_ID, any()) }
+        justRun { contextProvider.createContext(TEST_CHAT_ID, any()) }
+        justRun { contextProvider.removeContextForChatId(TEST_CHAT_ID) }
+        justRun { contextProvider.setNextQuestionForChatId(TEST_CHAT_ID, any()) }
 
         every { telegramBotHandlerFactory.getActionService(TELEGRAM_COMMAND_TEXT) } returns actionService
         every { update.message } returns message
@@ -73,16 +82,56 @@ class RecipesBotTest : AbstractIntegrationTest() {
 
     @Test
     fun onUpdateReceived_successMessage() {
-        every { update.hasMessage() } returns true
-        every { message.chatId } returns TEST_CHAT_ID
-        every { message.text } returns TELEGRAM_MESSAGE_TEXT
-        every { telegramMessageHandler.parseTelegramMessage(TELEGRAM_MESSAGE_TEXT, TEST_CHAT_ID) } returns Either.Right(
-            TelegramParsedRequest(
-                TELEGRAM_COMMAND_TEXT, null
+        hasMessageReturnsTrue()
+        messageReturnsChatId()
+        messsageReturnsText()
+        every {
+            telegramMessageHandler.parseMessageAndGetContext(
+                TELEGRAM_MESSAGE_TEXT,
+                TEST_CHAT_ID
+            )
+        } returns CommandContext(
+            TELEGRAM_COMMAND_TEXT, null
+        )
+        every { actionService.executeAndGetResult(any()) } returns TelegramActionResult(
+            TelegramResponse(
+                TELEGRAM_RESPONSE_TEXT, TEST_CHAT_ID
             )
         )
-        every { actionService.executeAndGetResponse(any()) } returns TelegramResponse(
-            TELEGRAM_RESPONSE_TEXT, TEST_CHAT_ID
+        every { contextProvider.hasContext(TEST_CHAT_ID) } returns false
+
+        every { recipesBot.execute(any<SendMessage>()) } returns null
+
+        recipesBot.onUpdateReceived(update)
+
+        verify {
+            recipesBot.execute(SendMessage(TEST_CHAT_ID.toString(), TELEGRAM_RESPONSE_TEXT))
+        }
+
+        verify {
+            contextProvider.createContext(TEST_CHAT_ID, CommandContext(TELEGRAM_COMMAND_TEXT, null))
+        }
+        verify {
+            contextProvider.removeContextForChatId(TEST_CHAT_ID)
+        }
+
+        verifyAuthRunning()
+    }
+
+    @Test
+    fun onUpdateReceived_successMessageWithExistingContext() {
+        hasMessageReturnsTrue()
+        messageReturnsChatId()
+        messsageReturnsText()
+        every { actionService.executeAndGetResult(any()) } returns TelegramActionResult(
+            TelegramResponse(
+                TELEGRAM_RESPONSE_TEXT, TEST_CHAT_ID
+            ),
+            CommandContext.Question(TELEGRAM_COMMAND_QUESTION)
+        )
+        every { contextProvider.hasContext(TEST_CHAT_ID) } returns true
+        every { contextProvider.getContextForChatId(TEST_CHAT_ID) } returns CommandContext(
+            TELEGRAM_COMMAND_TEXT, null
         )
 
         every { recipesBot.execute(any<SendMessage>()) } returns null
@@ -91,6 +140,18 @@ class RecipesBotTest : AbstractIntegrationTest() {
 
         verify {
             recipesBot.execute(SendMessage(TEST_CHAT_ID.toString(), TELEGRAM_RESPONSE_TEXT))
+        }
+
+        verify { contextProvider.appendAnswer(TEST_CHAT_ID, CommandContext.Answer(TELEGRAM_MESSAGE_TEXT)) }
+        verify { contextProvider.getContextForChatId(TEST_CHAT_ID) }
+        verify {
+            contextProvider.setNextQuestionForChatId(
+                TEST_CHAT_ID,
+                CommandContext.Question(TELEGRAM_COMMAND_QUESTION)
+            )
+        }
+        verify(exactly = 0) {
+            contextProvider.removeContextForChatId(TEST_CHAT_ID)
         }
 
         verifyAuthRunning()
@@ -102,13 +163,20 @@ class RecipesBotTest : AbstractIntegrationTest() {
         every { update.hasCallbackQuery() } returns true
         every { callbackMessage.chatId } returns TEST_CHAT_ID
         every { callbackQuery.data } returns TELEGRAM_MESSAGE_TEXT
-        every { telegramMessageHandler.parseTelegramMessage(TELEGRAM_MESSAGE_TEXT, TEST_CHAT_ID) } returns Either.Right(
-            TelegramParsedRequest(
-                TELEGRAM_COMMAND_TEXT, null
+        every {
+            telegramMessageHandler.parseMessageAndGetContext(
+                TELEGRAM_MESSAGE_TEXT,
+                TEST_CHAT_ID
             )
+        } returns CommandContext(
+            TELEGRAM_COMMAND_TEXT, null
         )
-        every { actionService.executeAndGetResponse(any()) } returns TelegramResponse(
-            TELEGRAM_RESPONSE_TEXT, TEST_CHAT_ID
+        every { contextProvider.hasContext(TEST_CHAT_ID) } returns false
+
+        every { actionService.executeAndGetResult(any()) } returns TelegramActionResult(
+            TelegramResponse(
+                TELEGRAM_RESPONSE_TEXT, TEST_CHAT_ID
+            )
         )
 
         every { recipesBot.execute(any<SendMessage>()) } returns null
@@ -119,6 +187,13 @@ class RecipesBotTest : AbstractIntegrationTest() {
             recipesBot.execute(SendMessage(TEST_CHAT_ID.toString(), TELEGRAM_RESPONSE_TEXT))
         }
 
+        verify {
+            contextProvider.createContext(TEST_CHAT_ID, CommandContext(TELEGRAM_COMMAND_TEXT, null))
+        }
+        verify {
+            contextProvider.removeContextForChatId(TEST_CHAT_ID)
+        }
+
         verifyAuthRunning()
     }
 
@@ -126,15 +201,18 @@ class RecipesBotTest : AbstractIntegrationTest() {
     @ParameterizedTest
     @MethodSource("errorTestCases")
     fun onUpdateReceived_commonFail(errorMessage: String?, expectedResponse: String) {
-        every { update.hasMessage() } returns true
-        every { message.chatId } returns TEST_CHAT_ID
-        every { message.text } returns TELEGRAM_MESSAGE_TEXT
-        every { telegramMessageHandler.parseTelegramMessage(TELEGRAM_MESSAGE_TEXT, TEST_CHAT_ID) } returns Either.Right(
-            TelegramParsedRequest(
-                TELEGRAM_COMMAND_TEXT, null
+        hasMessageReturnsTrue()
+        messageReturnsChatId()
+        messsageReturnsText()
+        every {
+            telegramMessageHandler.parseMessageAndGetContext(
+                TELEGRAM_MESSAGE_TEXT,
+                TEST_CHAT_ID
             )
-        )
-        every { actionService.executeAndGetResponse(any()) } throws RuntimeException(errorMessage)
+        } returns CommandContext(TELEGRAM_COMMAND_TEXT, null)
+        every { contextProvider.hasContext(TEST_CHAT_ID) } returns false
+
+        every { actionService.executeAndGetResult(any()) } throws RuntimeException(errorMessage)
 
         every { recipesBot.execute(any<SendMessage>()) } returns null
 
@@ -143,26 +221,41 @@ class RecipesBotTest : AbstractIntegrationTest() {
         verify {
             recipesBot.execute(SendMessage(TEST_CHAT_ID.toString(), expectedResponse))
         }
+        verify {
+            contextProvider.createContext(TEST_CHAT_ID, CommandContext(TELEGRAM_COMMAND_TEXT, null))
+        }
+        verify {
+            contextProvider.removeContextForChatId(TEST_CHAT_ID)
+        }
 
         verifyAuthRunning()
     }
 
     @Test
     fun onUpdateReceived_authFail() {
-        every { update.hasMessage() } returns true
-        every { message.chatId } returns TEST_CHAT_ID
-        every { message.text } returns TELEGRAM_MESSAGE_TEXT
-        every { telegramMessageHandler.parseTelegramMessage(TELEGRAM_MESSAGE_TEXT, TEST_CHAT_ID) } returns Either.Right(
-            TelegramParsedRequest(
-                TELEGRAM_COMMAND_TEXT, null
+        hasMessageReturnsTrue()
+        messageReturnsChatId()
+        messsageReturnsText()
+        every {
+            telegramMessageHandler.parseMessageAndGetContext(
+                TELEGRAM_MESSAGE_TEXT,
+                TEST_CHAT_ID
             )
-        )
-        every { actionService.executeAndGetResponse(any()) } throws AuthorizationDeniedException("")
+        } returns CommandContext(TELEGRAM_COMMAND_TEXT, null)
+        every { contextProvider.hasContext(TEST_CHAT_ID) } returns false
+
+        every { actionService.executeAndGetResult(any()) } throws AuthorizationDeniedException("")
 
         every { recipesBot.execute(any<SendMessage>()) } returns null
 
         recipesBot.onUpdateReceived(update)
 
+        verify {
+            contextProvider.createContext(TEST_CHAT_ID, CommandContext(TELEGRAM_COMMAND_TEXT, null))
+        }
+        verify {
+            contextProvider.removeContextForChatId(TEST_CHAT_ID)
+        }
         verify {
             recipesBot.execute(SendMessage(TEST_CHAT_ID.toString(), "У вас не хватает прав на выполнение команды"))
         }
@@ -184,14 +277,21 @@ class RecipesBotTest : AbstractIntegrationTest() {
 
     @Test
     fun onUpdateReceived_failParse() {
-        every { update.hasMessage() } returns true
-        every { message.chatId } returns TEST_CHAT_ID
-        every { message.text } returns TELEGRAM_MESSAGE_TEXT
-        every { telegramMessageHandler.parseTelegramMessage(TELEGRAM_MESSAGE_TEXT, TEST_CHAT_ID) } returns Either.Left(
+        hasMessageReturnsTrue()
+        messageReturnsChatId()
+        messsageReturnsText()
+        every { contextProvider.hasContext(TEST_CHAT_ID) } returns false
+        every {
+            telegramMessageHandler.parseMessageAndGetContext(
+                TELEGRAM_MESSAGE_TEXT,
+                TEST_CHAT_ID
+            )
+        } throws TelegramException(
             TelegramResponse(
                 TELEGRAM_RESPONSE_TEXT, TEST_CHAT_ID
             )
         )
+
 
         every { recipesBot.execute(any<SendMessage>()) } returns null
 
@@ -202,7 +302,22 @@ class RecipesBotTest : AbstractIntegrationTest() {
         verify {
             recipesBot.execute(SendMessage(TEST_CHAT_ID.toString(), TELEGRAM_RESPONSE_TEXT))
         }
+        verify {
+            contextProvider.removeContextForChatId(TEST_CHAT_ID)
+        }
         verifyAuthRunning()
+    }
+
+    private fun messsageReturnsText() {
+        every { message.text } returns TELEGRAM_MESSAGE_TEXT
+    }
+
+    private fun messageReturnsChatId() {
+        every { message.chatId } returns TEST_CHAT_ID
+    }
+
+    private fun hasMessageReturnsTrue() {
+        every { update.hasMessage() } returns true
     }
 
     private fun errorTestCases(): List<Arguments> = listOf(

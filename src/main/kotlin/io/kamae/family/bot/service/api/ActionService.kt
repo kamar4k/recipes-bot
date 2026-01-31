@@ -1,15 +1,26 @@
 package io.kamae.family.bot.service.api
 
+import io.kamae.family.bot.domain.telegram.CommandContext
+import io.kamae.family.bot.domain.telegram.TelegramActionResult
 import io.kamae.family.bot.domain.telegram.dto.TelegramAction
 import io.kamae.family.bot.domain.telegram.dto.TelegramResponse
 
 interface ActionService {
-    fun executeAndGetResponse(telegramAction: TelegramAction): TelegramResponse
+    fun executeAndGetResult(telegramAction: TelegramAction): TelegramActionResult
 
-    fun prepareResponseWithText(text: String, action: TelegramAction): TelegramResponse {
-        return TelegramResponse(
-            text,
-            action.telegramUserInfo.chatId
-        )
+    companion object {
+        fun prepareResultWithText(
+            text: String,
+            action: TelegramAction,
+            nextQuestion: CommandContext.Question? = null
+        ): TelegramActionResult {
+            return TelegramActionResult(
+                TelegramResponse(
+                    text,
+                    action.telegramUserInfo.chatId
+                ),
+                nextQuestion
+            )
+        }
     }
 }

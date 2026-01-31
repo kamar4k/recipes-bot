@@ -4,7 +4,9 @@ import io.kamae.family.bot.client.dto.ListRecipesRsDto
 import io.kamae.family.bot.client.dto.PostRecipeRqDto
 import io.kamae.family.bot.client.dto.RecipeRsDto
 import io.kamae.family.bot.client.dto.RecipeShortInfoDto
+import io.kamae.family.bot.domain.telegram.CommandContext
 import io.kamae.family.bot.domain.telegram.dto.TelegramAction
+import io.kamae.family.bot.provider.context.MapCommandContext
 import io.mockk.clearAllMocks
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.TestInstance
@@ -41,6 +43,9 @@ abstract class AbstractTest {
             TEST_AUTHOR
         )
 
+        const val TELEGRAM_COMMAND = "/command"
+        const val TELEGRAM_COMMAND_QUESTION = "question"
+        const val TELEGRAM_COMMAND_ANSWER = "answer"
         const val TELEGRAM_COMMAND_TEXT = "some command text"
         const val TELEGRAM_MESSAGE_TEXT = "some text"
         const val TELEGRAM_RESPONSE_TEXT = "some response text"
@@ -51,6 +56,14 @@ abstract class AbstractTest {
         )
 
         val TEST_RECIPES_LIST_RS = ListRecipesRsDto(TEST_RECIPE_SHORT_INFO_LIST)
+
+        val TEST_COMMAND_CONTEXT = CommandContext(
+            TELEGRAM_COMMAND, TELEGRAM_COMMAND_TEXT
+        )
+
+        val TEST_MAP_COMMAND_CONTEXT = MapCommandContext(
+            TELEGRAM_COMMAND, TELEGRAM_COMMAND_TEXT, TELEGRAM_COMMAND_QUESTION
+        )
     }
 
     @AfterEach
@@ -59,7 +72,7 @@ abstract class AbstractTest {
     }
 
     protected fun formAction(command: String = "/any", text: String? = null) =
-        TelegramAction(command, text, TEST_CHAT_ID, TEST_AUTHOR)
+        TelegramAction(CommandContext(command, text), TEST_CHAT_ID, TEST_AUTHOR)
 
     protected fun getTestResourcesAsString(fileName: String): String {
         return TestUtils.getTestResourcesAsString(this.javaClass, fileName)

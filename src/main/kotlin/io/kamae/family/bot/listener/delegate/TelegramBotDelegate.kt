@@ -1,12 +1,16 @@
 package io.kamae.family.bot.listener.delegate
 
+import io.kamae.family.bot.domain.telegram.CommandContext
+import io.kamae.family.bot.domain.telegram.TelegramActionResult
 import io.kamae.family.bot.domain.telegram.dto.TelegramAction
 import io.kamae.family.bot.domain.telegram.dto.TelegramResponse
 import io.kamae.family.bot.domain.telegram.dto.TelegramUserInfo
 import io.kamae.family.bot.domain.telegram.parser.TelegramRecipesMessageHandler
+import io.kamae.family.bot.provider.api.ContextProvider
 import io.kamae.family.bot.security.AuthorizationUtils
 import io.kamae.family.bot.security.annotation.SecuredTelegramListener
 import io.kamae.family.bot.service.factory.ActionServiceFactory
+import io.kamae.family.bot.util.exception.TelegramException
 import org.springframework.security.authorization.AuthorizationDeniedException
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.meta.api.objects.Update
@@ -20,29 +24,68 @@ interface TelegramBotDelegate {
 class RecipesBotDelegate(
     private val telegramMessageHandler: TelegramRecipesMessageHandler,
     private val telegramBotHandlerFactory: ActionServiceFactory,
-    private val authorizationUtils: AuthorizationUtils
-): TelegramBotDelegate {
+    private val authorizationUtils: AuthorizationUtils,
+    private val contextProvider: ContextProvider
+) : TelegramBotDelegate {
     override fun processUpdate(update: Update): TelegramResponse {
         val (chatId: Long, text: String) = getChatIdAndTextFromUpdate(update)
 
         return try {
-            val parsedResult = telegramMessageHandler.parseTelegramMessage(text, chatId)
+            val context = getContext(chatId, text)
 
-            parsedResult.fold(
-                {
-                    it
-                }, {
-                    val userName = authorizationUtils.getUserName()
-                    val action = TelegramAction(it, TelegramUserInfo(chatId, userName))
-                    telegramBotHandlerFactory.getActionService(it.command).executeAndGetResponse(action)
-                }
-            )
+            val actionResult = executeActionAndGetResult(context, chatId)
+
+            setNextQuestionOrClearContext(actionResult, chatId)
+
+            actionResult.telegramResponse
+        } catch (ex: TelegramException) {
+            contextProvider.removeContextForChatId(chatId)
+            ex.telegramResponse
         } catch (ex: AuthorizationDeniedException) {
+            contextProvider.removeContextForChatId(chatId)
             TelegramResponse("У вас не хватает прав на выполнение команды", chatId)
-        }
-        catch (ex: Exception) {
+        } catch (ex: Exception) {
+            contextProvider.removeContextForChatId(chatId)
             TelegramResponse(ex.message ?: "Ошибка обработки запроса", chatId)
         }
+    }
+
+    private fun setNextQuestionOrClearContext(actionResult: TelegramActionResult, chatId: Long) {
+        (actionResult.nextQuestion?.let { contextProvider.setNextQuestionForChatId(chatId, it) }
+            ?: also { contextProvider.removeContextForChatId(chatId) })
+    }
+
+    private fun executeActionAndGetResult(
+        context: CommandContext,
+        chatId: Long
+    ): TelegramActionResult {
+        val userName = authorizationUtils.getUserName()
+        val action = TelegramAction(context, TelegramUserInfo(chatId, userName))
+        val actionResult = telegramBotHandlerFactory.getActionService(context.command).executeAndGetResult(action)
+        return actionResult
+    }
+
+    private fun getContext(
+        chatId: Long,
+        text: String
+    ) = if (contextProvider.hasContext(chatId)) {
+        appendAnswerAndGetContext(chatId, text)
+    } else {
+        createAndGetContext(text, chatId)
+    }
+
+    private fun createAndGetContext(
+        text: String,
+        chatId: Long
+    ): CommandContext {
+        val ctxForSave = telegramMessageHandler.parseMessageAndGetContext(text, chatId)
+        contextProvider.createContext(chatId, ctxForSave)
+        return ctxForSave
+    }
+
+    private fun appendAnswerAndGetContext(chatId: Long, answer: String): CommandContext {
+        contextProvider.appendAnswer(chatId, CommandContext.Answer(answer))
+        return contextProvider.getContextForChatId(chatId)!!
     }
 
     private fun getChatIdAndTextFromUpdate(update: Update): Pair<Long, String> {

@@ -4,30 +4,31 @@ import arrow.core.Either
 import feign.RetryableException
 import io.kamae.family.bot.client.RecipesServiceClient
 import io.kamae.family.bot.client.dto.PostRecipeRqDto
+import io.kamae.family.bot.domain.telegram.TelegramActionResult
 import io.kamae.family.bot.domain.telegram.dto.TelegramAction
-import io.kamae.family.bot.domain.telegram.dto.TelegramResponse
 import io.kamae.family.bot.service.api.ActionService
+import io.kamae.family.bot.service.api.ActionService.Companion.prepareResultWithText
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Service
 
 @Service
 @PreAuthorize("hasRole('EDITOR')")
 class AddRecipeActionService(private val recipesServiceClient: RecipesServiceClient) : ActionService {
-    override fun executeAndGetResponse(telegramAction: TelegramAction): TelegramResponse {
-        checkNotNull(telegramAction.telegramParsedRequest.text) { "Данная команда требует текста" }
-        val recipe = parseRecipe(telegramAction.telegramParsedRequest.text, telegramAction.telegramUserInfo.username)
+    override fun executeAndGetResult(telegramAction: TelegramAction): TelegramActionResult {
+        checkNotNull(telegramAction.commandContext.text) { "Данная команда требует текста" }
+        val recipe = parseRecipe(telegramAction.commandContext.text, telegramAction.telegramUserInfo.username)
 
         val result = Either.catch { recipesServiceClient.addRecipe(recipe) }
 
         return result.fold(
             {
                 when {
-                    it is RetryableException -> prepareResponseWithText("Сервис недоступен", telegramAction)
-                    else -> prepareResponseWithText("Неизвестная ошибка: ${it.message}", telegramAction)
+                    it is RetryableException -> prepareResultWithText("Сервис недоступен", telegramAction)
+                    else -> prepareResultWithText("Неизвестная ошибка: ${it.message}", telegramAction)
                 }
             },
             {
-                prepareResponseWithText("Рецепт успешно добавлен", telegramAction)
+                prepareResultWithText("Рецепт успешно добавлен", telegramAction)
             }
         )
     }

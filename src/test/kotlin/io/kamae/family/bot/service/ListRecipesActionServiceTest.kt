@@ -8,11 +8,8 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.verify
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertNotNull
-import org.junit.jupiter.api.assertNull
 
 class ListRecipesActionServiceTest : AbstractTest() {
     @MockK
@@ -30,17 +27,18 @@ class ListRecipesActionServiceTest : AbstractTest() {
     fun executeAndGetResponse_success() {
         every { recipesServiceClient.listRecipes() } returns TEST_RECIPES_LIST_RS
 
-        val result = listRecipesActionService.executeAndGetResponse(formAction())
+        val result = listRecipesActionService.executeAndGetResult(formAction())
 
         verify { recipesServiceClient.listRecipes() }
 
-        assertEquals("Выберите рецепт", result.text)
-        assertEquals(TEST_CHAT_ID, result.chatId)
-        assertNotNull(result.buttons)
-        assertEquals(TelegramButton(TEST_RECIPE_TITLE, "/get $TEST_RECIPE_ID"), result.buttons!![0])
+        assertNull(result.nextQuestion)
+        assertEquals("Выберите рецепт", result.telegramResponse.text)
+        assertEquals(TEST_CHAT_ID, result.telegramResponse.chatId)
+        assertNotNull(result.telegramResponse.buttons)
+        assertEquals(TelegramButton(TEST_RECIPE_TITLE, "/get $TEST_RECIPE_ID"), result.telegramResponse.buttons!![0])
         assertEquals(
             TelegramButton(TEST_ANOTHER_RECIPE_TITLE, "/get $TEST_ANOTHER_RECIPE_ID"),
-            result.buttons!![1]
+            result.telegramResponse.buttons!![1]
         )
     }
 
@@ -48,11 +46,11 @@ class ListRecipesActionServiceTest : AbstractTest() {
     fun executeAndGetResponse_apiError() {
         every { recipesServiceClient.listRecipes() } throws IllegalStateException("error")
 
-        val result = listRecipesActionService.executeAndGetResponse(formAction())
+        val result = listRecipesActionService.executeAndGetResult(formAction())
 
         verify { recipesServiceClient.listRecipes() }
-        assertEquals(TEST_CHAT_ID, result.chatId)
-        assertEquals("Неизвестная ошибка: error", result.text)
-        assertNull(result.buttons)
+        assertEquals(TEST_CHAT_ID, result.telegramResponse.chatId)
+        assertEquals("Неизвестная ошибка: error", result.telegramResponse.text)
+        assertNull(result.telegramResponse.buttons)
     }
 }

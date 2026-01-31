@@ -40,18 +40,19 @@ class AddRecipeActionServiceTest : AbstractTest() {
 
         justRun { recipesServiceClient.addRecipe(any()) }
 
-        val result = addRecipeActionService.executeAndGetResponse(formAction(text = TEST_TEXT))
+        val result = addRecipeActionService.executeAndGetResult(formAction(text = TEST_TEXT))
 
         verify { recipesServiceClient.addRecipe(TEST_RECIPE_DTO) }
 
-        assertEquals("Рецепт успешно добавлен", result.text)
-        assertEquals(TEST_CHAT_ID, result.chatId)
-        assertNull(result.buttons)
+        assertNull(result.nextQuestion)
+        assertEquals("Рецепт успешно добавлен", result.telegramResponse.text)
+        assertEquals(TEST_CHAT_ID, result.telegramResponse.chatId)
+        assertNull(result.telegramResponse.buttons)
     }
 
     @Test
     fun executeAndGetResponse_nullText() {
-        val error = assertThrows<IllegalStateException> { addRecipeActionService.executeAndGetResponse(formAction()) }
+        val error = assertThrows<IllegalStateException> { addRecipeActionService.executeAndGetResult(formAction()) }
 
         assertEquals("Данная команда требует текста", error.message)
     }
@@ -61,12 +62,13 @@ class AddRecipeActionServiceTest : AbstractTest() {
     fun executeAndGetResponse_apiError(exception: Exception, expectedMessage: String) {
         every { recipesServiceClient.addRecipe(any()) } throws exception
 
-        val response = addRecipeActionService.executeAndGetResponse(formAction(text = TEST_TEXT))
+        val result = addRecipeActionService.executeAndGetResult(formAction(text = TEST_TEXT))
 
         verify { recipesServiceClient.addRecipe(TEST_RECIPE_DTO) }
-        assertEquals(expectedMessage, response.text)
-        assertEquals(TEST_CHAT_ID, response.chatId)
-        assertNull(response.buttons)
+        assertNull(result.nextQuestion)
+        assertEquals(expectedMessage, result.telegramResponse.text)
+        assertEquals(TEST_CHAT_ID, result.telegramResponse.chatId)
+        assertNull(result.telegramResponse.buttons)
     }
 
     private fun apiErrorCases() = listOf(
