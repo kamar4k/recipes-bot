@@ -37,7 +37,6 @@ class MapContextProviderTest : AbstractTest() {
         assertNotNull(result)
         assertEquals(TEST_MAP_COMMAND_CONTEXT.command, result?.command)
         assertEquals(TEST_MAP_COMMAND_CONTEXT.text, result?.text)
-        assertEquals(TEST_MAP_COMMAND_CONTEXT.nextQuestion, result?.nextQuestion?.value)
     }
 
     @Test

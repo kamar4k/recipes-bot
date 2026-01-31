@@ -16,7 +16,6 @@ data class MapCommandContext(
     fun toCommandContext() = CommandContext(
         this.command,
         this.text,
-        this.nextQuestion?.let { CommandContext.Question(it) },
         this.sequence.map { CommandContext.Element(CommandContext.Question(it.question), CommandContext.Answer(it.answer)) }
     )
 

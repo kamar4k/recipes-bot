@@ -10,7 +10,7 @@ class MapContextProvider: ContextProvider {
     private val contextMap: ConcurrentHashMap<Long, MapCommandContext> = ConcurrentHashMap()
 
     override fun hasContext(chatId: Long): Boolean {
-        return contextMap.contains(chatId)
+        return contextMap.containsKey(chatId)
     }
 
     override fun createContext(chatId: Long, commandContext: CommandContext) {
