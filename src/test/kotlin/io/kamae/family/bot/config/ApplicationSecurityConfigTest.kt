@@ -1,7 +1,8 @@
 package io.kamae.family.bot.config
 
 import io.kamae.family.bot.AbstractTest
-import io.kamae.family.bot.security.annotation.SecuredTelegramListener
+import io.kamae.family.bot.core.config.ApplicationSecurityConfig
+import io.kamae.family.bot.core.security.annotation.SecuredTelegramListener
 import io.kamae.family.bot.testinstances.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull

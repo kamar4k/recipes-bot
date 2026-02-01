@@ -1,5 +1,6 @@
 package io.kamae.family.bot.domain.telegram.keyboard
 
+import io.kamae.family.bot.core.api.BotKeyboard
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow

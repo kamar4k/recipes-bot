@@ -1,7 +1,8 @@
 package io.kamae.family.bot.security.aspect
 
 import io.kamae.family.bot.AbstractTest
-import io.kamae.family.bot.security.consts.AuthorizationConstants.EMPTY_PASSWORD
+import io.kamae.family.bot.core.security.aspect.SecuredTelegramListenerAspect
+import io.kamae.family.bot.core.security.consts.AuthorizationConstants.EMPTY_PASSWORD
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs

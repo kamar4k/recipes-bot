@@ -2,7 +2,8 @@ package io.kamae.family.bot.service.factory
 
 import io.kamae.family.bot.AbstractIntegrationTest
 import io.kamae.family.bot.service.*
-import io.kamae.family.bot.service.api.ActionService
+import io.kamae.family.bot.core.api.ActionService
+import io.kamae.family.bot.core.factory.ActionServiceFactory
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Test

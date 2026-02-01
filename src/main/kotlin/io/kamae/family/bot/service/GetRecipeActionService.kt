@@ -4,10 +4,10 @@ import arrow.core.Either
 import feign.FeignException.NotFound
 import io.kamae.family.bot.client.RecipesServiceClient
 import io.kamae.family.bot.client.dto.RecipeRsDto
-import io.kamae.family.bot.domain.telegram.TelegramActionResult
-import io.kamae.family.bot.domain.telegram.dto.TelegramAction
-import io.kamae.family.bot.service.api.ActionService
-import io.kamae.family.bot.service.api.ActionService.Companion.prepareResultWithText
+import io.kamae.family.bot.core.domain.model.TelegramActionResult
+import io.kamae.family.bot.core.domain.model.TelegramAction
+import io.kamae.family.bot.core.api.ActionService
+import io.kamae.family.bot.core.api.ActionService.Companion.prepareResultWithText
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Service
 import java.util.*

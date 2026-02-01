@@ -1,7 +1,7 @@
 package io.kamae.family.bot.provider.context
 
 import io.kamae.family.bot.AbstractTest
-import io.kamae.family.bot.domain.telegram.CommandContext
+import io.kamae.family.bot.core.domain.model.CommandContext
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

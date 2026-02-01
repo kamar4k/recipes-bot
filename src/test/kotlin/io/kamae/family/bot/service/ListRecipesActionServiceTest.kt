@@ -2,7 +2,7 @@ package io.kamae.family.bot.service
 
 import io.kamae.family.bot.AbstractTest
 import io.kamae.family.bot.client.RecipesServiceClient
-import io.kamae.family.bot.domain.telegram.dto.TelegramButton
+import io.kamae.family.bot.core.domain.model.TelegramButton
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs

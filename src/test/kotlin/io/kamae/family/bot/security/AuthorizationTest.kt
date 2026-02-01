@@ -4,6 +4,7 @@ import arrow.core.Either
 import com.ninjasquad.springmockk.SpykBean
 import io.kamae.family.bot.AbstractTest
 import io.kamae.family.bot.FamilyBotApplication
+import io.kamae.family.bot.core.security.UserRole
 import io.kamae.family.bot.jpa.entity.ApplicationUserEntity
 import io.kamae.family.bot.jpa.repository.ApplicationUserRepository
 import io.kamae.family.bot.testinstances.auth.ApplicationAuthorizationTestConfiguration

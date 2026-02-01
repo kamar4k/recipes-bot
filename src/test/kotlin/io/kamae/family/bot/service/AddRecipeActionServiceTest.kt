@@ -4,8 +4,8 @@ import feign.Request
 import feign.RetryableException
 import io.kamae.family.bot.AbstractTest
 import io.kamae.family.bot.client.RecipesServiceClient
-import io.kamae.family.bot.domain.telegram.CommandContext
-import io.kamae.family.bot.domain.telegram.dto.TelegramAction
+import io.kamae.family.bot.core.domain.model.CommandContext
+import io.kamae.family.bot.core.domain.model.TelegramAction
 import io.kamae.family.bot.domain.telegram.keyboard.BaseKeyboard
 import io.kamae.family.bot.domain.telegram.keyboard.CancellationKeyboard
 import io.mockk.*

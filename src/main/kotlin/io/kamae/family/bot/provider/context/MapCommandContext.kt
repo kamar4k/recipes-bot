@@ -1,6 +1,6 @@
 package io.kamae.family.bot.provider.context
 
-import io.kamae.family.bot.domain.telegram.CommandContext
+import io.kamae.family.bot.core.domain.model.CommandContext
 
 data class MapCommandContext(
     val command: String,

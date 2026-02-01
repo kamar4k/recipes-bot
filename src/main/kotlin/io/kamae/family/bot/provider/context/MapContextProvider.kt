@@ -1,7 +1,7 @@
 package io.kamae.family.bot.provider.context
 
-import io.kamae.family.bot.domain.telegram.CommandContext
-import io.kamae.family.bot.provider.api.ContextProvider
+import io.kamae.family.bot.core.domain.model.CommandContext
+import io.kamae.family.bot.core.provider.ContextProvider
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
 

@@ -1,6 +1,6 @@
 package io.kamae.family.bot.jpa.entity
 
-import io.kamae.family.bot.security.UserRole
+import io.kamae.family.bot.core.security.UserRole
 import jakarta.persistence.*
 import java.util.*
 

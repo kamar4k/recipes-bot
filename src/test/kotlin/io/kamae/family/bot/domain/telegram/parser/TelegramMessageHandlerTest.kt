@@ -1,9 +1,10 @@
 package io.kamae.family.bot.domain.telegram.parser
 
 import io.kamae.family.bot.AbstractTest
-import io.kamae.family.bot.domain.telegram.CommandContext
-import io.kamae.family.bot.domain.telegram.dto.TelegramResponse
-import io.kamae.family.bot.util.exception.TelegramException
+import io.kamae.family.bot.core.domain.model.CommandContext
+import io.kamae.family.bot.core.domain.model.TelegramResponse
+import io.kamae.family.bot.core.domain.parser.TelegramRecipesMessageHandler
+import io.kamae.family.bot.core.exception.TelegramException
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest

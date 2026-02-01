@@ -1,10 +1,10 @@
 package io.kamae.family.bot.testinstances
 
 import io.kamae.family.bot.AbstractTest
-import io.kamae.family.bot.domain.telegram.dto.TelegramResponse
+import io.kamae.family.bot.core.domain.model.TelegramResponse
 import io.kamae.family.bot.jpa.repository.ApplicationUserRepository
-import io.kamae.family.bot.listener.delegate.TelegramBotDelegate
-import io.kamae.family.bot.security.annotation.SecuredTelegramListener
+import io.kamae.family.bot.core.domain.listener.delegate.TelegramBotDelegate
+import io.kamae.family.bot.core.security.annotation.SecuredTelegramListener
 import io.mockk.mockk
 import org.slf4j.LoggerFactory
 import org.springframework.boot.test.context.TestConfiguration
