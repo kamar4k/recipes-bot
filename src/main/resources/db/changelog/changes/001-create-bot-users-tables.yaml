@@ -28,15 +28,3 @@ databaseChangeLog:
             columns:
               - column:
                   name: role
-        - insert:
-            tableName: bot_user
-            columns:
-              - column:
-                  name: id
-                  value: 3c25c7a9-2d8e-4f3b-9a12-1e5b8f7a3c2d
-              - column:
-                  name: username
-                  value: kamaev_aa
-              - column:
-                  name: role
-                  value: ROLE_ADMIN
