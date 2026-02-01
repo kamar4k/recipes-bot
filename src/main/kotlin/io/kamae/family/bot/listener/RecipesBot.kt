@@ -35,6 +35,8 @@ class RecipesBot(
 
         if (buttons != null) {
             sendMessage.replyMarkup = InlineKeyboardMarkup(buttons)
+        } else if (response.keyboard != null) {
+            sendMessage.replyMarkup = response.keyboard.getKeyboard()
         }
 
         execute(sendMessage)

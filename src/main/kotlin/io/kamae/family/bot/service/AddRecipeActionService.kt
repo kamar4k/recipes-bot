@@ -7,6 +7,9 @@ import io.kamae.family.bot.client.dto.PostRecipeRqDto
 import io.kamae.family.bot.domain.telegram.CommandContext
 import io.kamae.family.bot.domain.telegram.TelegramActionResult
 import io.kamae.family.bot.domain.telegram.dto.TelegramAction
+import io.kamae.family.bot.domain.telegram.dto.TelegramResponse
+import io.kamae.family.bot.domain.telegram.keyboard.BaseKeyboard
+import io.kamae.family.bot.domain.telegram.keyboard.CancellationKeyboard
 import io.kamae.family.bot.service.api.ActionService
 import io.kamae.family.bot.service.api.ActionService.Companion.prepareResultWithText
 import org.springframework.security.access.prepost.PreAuthorize
@@ -15,23 +18,26 @@ import org.springframework.stereotype.Service
 @Service
 @PreAuthorize("hasRole('EDITOR')")
 class AddRecipeActionService(private val recipesServiceClient: RecipesServiceClient) : ActionService {
+    companion object {
+        private const val CANCELLATION_MESSAGE = "Для отмены нажмите кнопку или введите 'Отменить'"
+    }
+
     override fun executeAndGetResult(telegramAction: TelegramAction): TelegramActionResult {
         val lastContextElement = telegramAction.commandContext
             .sequence
             .lastOrNull()
             ?.also {
-                if (it.answer?.value == "/cancel") return prepareResultWithText(
+                if (it.answer?.value == "Отмена") return prepareResultWithText(
                     "Ввод рецепта отменён",
-                    telegramAction
+                    telegramAction,
+                    keyboard = BaseKeyboard
                 )
             }
             ?: return prepareNameInput(telegramAction)
 
         return when (AddRecipeQuestion.valueOf(lastContextElement.question.value)) {
             AddRecipeQuestion.INPUT_NAME -> prepareIngredientInput(telegramAction)
-            AddRecipeQuestion.INPUT_INGREDIENT -> if (lastContextElement.answer?.value != "/ready") prepareIngredientInput(
-                telegramAction
-            ) else prepareInstructionsInput(telegramAction)
+            AddRecipeQuestion.INPUT_INGREDIENTS -> prepareInstructionsInput(telegramAction)
 
             AddRecipeQuestion.INPUT_INSTRUCTIONS -> saveRecipeAndPrepareResponse(telegramAction)
         }
@@ -45,37 +51,55 @@ class AddRecipeActionService(private val recipesServiceClient: RecipesServiceCli
         return result.fold(
             {
                 when {
-                    it is RetryableException -> prepareResultWithText("Сервис недоступен", telegramAction)
-                    else -> prepareResultWithText("Неизвестная ошибка: ${it.message}", telegramAction)
+                    it is RetryableException -> prepareResultWithText(
+                        "Сервис недоступен",
+                        telegramAction,
+                        keyboard = BaseKeyboard
+                    )
+
+                    else -> prepareResultWithText(
+                        "Неизвестная ошибка: ${it.message}",
+                        telegramAction,
+                        keyboard = BaseKeyboard
+                    )
                 }
             },
             {
-                prepareResultWithText("Рецепт успешно добавлен", telegramAction)
+                TelegramActionResult(
+                    TelegramResponse(
+                        "Рецепт успешно добавлен",
+                        telegramAction.telegramUserInfo.chatId,
+                        keyboard = BaseKeyboard
+                    )
+                )
             }
         )
     }
 
     private fun prepareNameInput(telegramAction: TelegramAction): TelegramActionResult {
         return prepareResultWithText(
-            "Введите наименование рецепта. /cancel - отменить",
+            "Введите наименование рецепта. $CANCELLATION_MESSAGE",
             telegramAction,
-            AddRecipeQuestion.INPUT_NAME.asQuestion()
+            AddRecipeQuestion.INPUT_NAME.asQuestion(),
+            CancellationKeyboard
         )
     }
 
     private fun prepareIngredientInput(telegramAction: TelegramAction): TelegramActionResult {
         return prepareResultWithText(
-            "Введите ингредиент. /cancel - отменить, /ready - завершить ввод",
+            "Введите ингредиенты (каждый на новой строке). $CANCELLATION_MESSAGE",
             telegramAction,
-            AddRecipeQuestion.INPUT_INGREDIENT.asQuestion()
+            AddRecipeQuestion.INPUT_INGREDIENTS.asQuestion(),
+            CancellationKeyboard
         )
     }
 
     private fun prepareInstructionsInput(telegramAction: TelegramAction): TelegramActionResult {
         return prepareResultWithText(
-            "Введите инструкции по приготовлению. /cancel - отменить",
+            "Введите инструкции по приготовлению. $CANCELLATION_MESSAGE",
             telegramAction,
-            AddRecipeQuestion.INPUT_INSTRUCTIONS.asQuestion()
+            AddRecipeQuestion.INPUT_INSTRUCTIONS.asQuestion(),
+            CancellationKeyboard
         )
     }
 
@@ -85,8 +109,8 @@ class AddRecipeActionService(private val recipesServiceClient: RecipesServiceCli
             commandContext.sequence.first { AddRecipeQuestion.INPUT_NAME.isQuestion(it.question) }.answer!!.value
 
         val ingredientsList =
-            commandContext.sequence.filter { AddRecipeQuestion.INPUT_INGREDIENT.isQuestion(it.question) && it.answer?.value != "/ready" }
-                .mapNotNull { it.answer?.value }
+            commandContext.sequence.first { AddRecipeQuestion.INPUT_INGREDIENTS.isQuestion(it.question) }
+                .answer!!.value.split("\n")
 
         val instructions =
             commandContext.sequence.first { AddRecipeQuestion.INPUT_INSTRUCTIONS.isQuestion(it.question) }.answer!!.value
@@ -96,7 +120,7 @@ class AddRecipeActionService(private val recipesServiceClient: RecipesServiceCli
 
     private enum class AddRecipeQuestion {
         INPUT_NAME,
-        INPUT_INGREDIENT,
+        INPUT_INGREDIENTS,
         INPUT_INSTRUCTIONS;
 
         fun asQuestion() = CommandContext.Question(this.name)

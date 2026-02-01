@@ -12,7 +12,6 @@ import org.junit.jupiter.params.provider.MethodSource
 
 class TelegramMessageHandlerTest : AbstractTest() {
     companion object {
-        private const val INCORRECT_COMMAND_MSG = "Неверный формат команды, подробнее в /help"
         private const val MISSING_TEXT_MSG = "Отсутствует текстовое сообщение"
     }
 
@@ -39,14 +38,12 @@ class TelegramMessageHandlerTest : AbstractTest() {
     private fun parseMessageSuccessCases(): List<Arguments> = listOf(
         Arguments.of("/command", CommandContext("/command", null)),
         Arguments.of("/some-command", CommandContext("/some-command", null)),
-        Arguments.of("/some-command get recipe", CommandContext("/some-command", "get recipe"))
+        Arguments.of("/some-command get recipe", CommandContext("/some-command", "get recipe")),
+        Arguments.of("Помощь", CommandContext("/help", null)),
+        Arguments.of("Непонятная команда", CommandContext("/default", null))
     )
 
     private fun parseMessageErrorCases(): List<Arguments> = listOf(
-        Arguments.of("/command-123", TelegramResponse(INCORRECT_COMMAND_MSG, TEST_CHAT_ID)),
-        Arguments.of("/command ", TelegramResponse(INCORRECT_COMMAND_MSG, TEST_CHAT_ID)),
-        Arguments.of("command", TelegramResponse(INCORRECT_COMMAND_MSG, TEST_CHAT_ID)),
-        Arguments.of("/", TelegramResponse(INCORRECT_COMMAND_MSG, TEST_CHAT_ID)),
         Arguments.of("", TelegramResponse(MISSING_TEXT_MSG, TEST_CHAT_ID)),
         Arguments.of(null, TelegramResponse(MISSING_TEXT_MSG, TEST_CHAT_ID))
     )
