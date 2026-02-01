@@ -25,6 +25,7 @@ abstract class AbstractTest {
         const val INGREDIENT_1 = "ingridient1"
         const val INGREDIENT_2 = "ingridient2 3"
         const val INGREDIENT_3 = "ing3 200g"
+        val TEST_RECIPE_INGREDIENTS_STR = "$INGREDIENT_1\n$INGREDIENT_2\n$INGREDIENT_3"
         private val TEST_RECIPE_INGREDIENTS = listOf(INGREDIENT_1, INGREDIENT_2, INGREDIENT_3)
         val TEST_ANOTHER_RECIPE_ID: UUID = UUID.fromString("2be1cc47-3b78-422c-b388-44b8be04eab1")
         const val TEST_ANOTHER_RECIPE_TITLE = "Another Recipe Title"

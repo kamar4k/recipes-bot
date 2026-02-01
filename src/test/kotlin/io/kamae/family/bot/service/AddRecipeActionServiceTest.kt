@@ -6,6 +6,8 @@ import io.kamae.family.bot.AbstractTest
 import io.kamae.family.bot.client.RecipesServiceClient
 import io.kamae.family.bot.domain.telegram.CommandContext
 import io.kamae.family.bot.domain.telegram.dto.TelegramAction
+import io.kamae.family.bot.domain.telegram.keyboard.BaseKeyboard
+import io.kamae.family.bot.domain.telegram.keyboard.CancellationKeyboard
 import io.mockk.*
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
@@ -19,9 +21,11 @@ import org.junit.jupiter.params.provider.MethodSource
 
 class AddRecipeActionServiceTest : AbstractTest() {
     companion object {
-        private const val TITLE_MSG = "Введите наименование рецепта. /cancel - отменить"
-        private const val INGREDIENT_MSG = "Введите ингредиент. /cancel - отменить, /ready - завершить ввод"
-        private const val INSTRUCTION_MSG = "Введите инструкции по приготовлению. /cancel - отменить"
+        private const val TITLE_MSG = "Введите наименование рецепта. Для отмены нажмите кнопку или введите 'Отменить'"
+        private const val INGREDIENT_MSG =
+            "Введите ингредиенты (каждый на новой строке). Для отмены нажмите кнопку или введите 'Отменить'"
+        private const val INSTRUCTION_MSG =
+            "Введите инструкции по приготовлению. Для отмены нажмите кнопку или введите 'Отменить'"
         private const val READY_MSG = "Рецепт успешно добавлен"
         private const val CANCEL_MSG = "Ввод рецепта отменён"
     }
@@ -41,8 +45,8 @@ class AddRecipeActionServiceTest : AbstractTest() {
     fun executeAndGetResponse_cancel() {
         val sequence = listOf(
             createElement("INPUT_NAME", TEST_RECIPE_TITLE),
-            createElement("INPUT_INGREDIENT", INGREDIENT_1),
-            createElement("INPUT_INGREDIENT", "/cancel")
+            createElement("INPUT_INGREDIENTS", INGREDIENT_1),
+            createElement("INPUT_INSTRUCTIONS", "Отмена")
         )
 
         val result = addRecipeActionService.executeAndGetResult(
@@ -54,6 +58,7 @@ class AddRecipeActionServiceTest : AbstractTest() {
         assertNull(result.nextQuestion)
         assertEquals(CANCEL_MSG, result.telegramResponse.text)
         assertEquals(TEST_CHAT_ID, result.telegramResponse.chatId)
+        assertEquals(BaseKeyboard, result.telegramResponse.keyboard)
     }
 
     @ParameterizedTest
@@ -68,6 +73,7 @@ class AddRecipeActionServiceTest : AbstractTest() {
         assertEquals(expectedMessage, result.telegramResponse.text)
         assertEquals(TEST_CHAT_ID, result.telegramResponse.chatId)
         assertNull(result.telegramResponse.buttons)
+        assertEquals(BaseKeyboard, result.telegramResponse.keyboard)
     }
 
     @Test
@@ -78,10 +84,7 @@ class AddRecipeActionServiceTest : AbstractTest() {
         val sequence = mutableListOf<CommandContext.Element>()
         checkInitial()
         checkTitleInputs(sequence)
-        checkIngredientInputs(sequence, INGREDIENT_1)
-        checkIngredientInputs(sequence, INGREDIENT_2)
-        checkIngredientInputs(sequence, INGREDIENT_3)
-        checkReadyInputs(sequence)
+        checkIngredientInputs(sequence)
         checkInstructionsInputs(sequence)
     }
 
@@ -93,33 +96,33 @@ class AddRecipeActionServiceTest : AbstractTest() {
         assertEquals("INPUT_NAME", result.nextQuestion?.value)
         assertEquals(TEST_CHAT_ID, result.telegramResponse.chatId)
         assertNull(result.telegramResponse.buttons)
+        assertEquals(CancellationKeyboard, result.telegramResponse.keyboard)
     }
 
     private fun checkTitleInputs(sequence: MutableList<CommandContext.Element>) {
         val result =
             addRecipeActionService.executeAndGetResult(getActionForElement(sequence, "INPUT_NAME", TEST_RECIPE_TITLE))
         assertEquals(INGREDIENT_MSG, result.telegramResponse.text)
-        assertEquals("INPUT_INGREDIENT", result.nextQuestion?.value)
+        assertEquals("INPUT_INGREDIENTS", result.nextQuestion?.value)
         assertEquals(TEST_CHAT_ID, result.telegramResponse.chatId)
         assertNull(result.telegramResponse.buttons)
+        assertEquals(CancellationKeyboard, result.telegramResponse.keyboard)
     }
 
-    private fun checkIngredientInputs(sequence: MutableList<CommandContext.Element>, ingredient: String) {
+    private fun checkIngredientInputs(sequence: MutableList<CommandContext.Element>) {
         val result =
-            addRecipeActionService.executeAndGetResult(getActionForElement(sequence, "INPUT_INGREDIENT", ingredient))
-        assertEquals(INGREDIENT_MSG, result.telegramResponse.text)
-        assertEquals("INPUT_INGREDIENT", result.nextQuestion?.value)
-        assertEquals(TEST_CHAT_ID, result.telegramResponse.chatId)
-        assertNull(result.telegramResponse.buttons)
-    }
-
-    private fun checkReadyInputs(sequence: MutableList<CommandContext.Element>) {
-        val result =
-            addRecipeActionService.executeAndGetResult(getActionForElement(sequence, "INPUT_INGREDIENT", "/ready"))
+            addRecipeActionService.executeAndGetResult(
+                getActionForElement(
+                    sequence,
+                    "INPUT_INGREDIENTS",
+                    TEST_RECIPE_INGREDIENTS_STR
+                )
+            )
         assertEquals(INSTRUCTION_MSG, result.telegramResponse.text)
         assertEquals("INPUT_INSTRUCTIONS", result.nextQuestion?.value)
         assertEquals(TEST_CHAT_ID, result.telegramResponse.chatId)
         assertNull(result.telegramResponse.buttons)
+        assertEquals(CancellationKeyboard, result.telegramResponse.keyboard)
     }
 
     private fun checkInstructionsInputs(sequence: MutableList<CommandContext.Element>) {
@@ -134,6 +137,7 @@ class AddRecipeActionServiceTest : AbstractTest() {
         assertEquals(READY_MSG, result.telegramResponse.text)
         assertEquals(TEST_CHAT_ID, result.telegramResponse.chatId)
         assertNull(result.telegramResponse.buttons)
+        assertEquals(BaseKeyboard, result.telegramResponse.keyboard)
 
         verify { recipesServiceClient.addRecipe(TEST_RECIPE_DTO) }
     }
@@ -152,10 +156,7 @@ class AddRecipeActionServiceTest : AbstractTest() {
             null,
             listOf(
                 createElement("INPUT_NAME", TEST_RECIPE_TITLE),
-                createElement("INPUT_INGREDIENT", INGREDIENT_1),
-                createElement("INPUT_INGREDIENT", INGREDIENT_2),
-                createElement("INPUT_INGREDIENT", INGREDIENT_3),
-                createElement("INPUT_INGREDIENT", "/ready"),
+                createElement("INPUT_INGREDIENTS", TEST_RECIPE_INGREDIENTS_STR),
                 createElement("INPUT_INSTRUCTIONS", TEST_RECIPE_INSTRUCTIONS)
             )
         ),
