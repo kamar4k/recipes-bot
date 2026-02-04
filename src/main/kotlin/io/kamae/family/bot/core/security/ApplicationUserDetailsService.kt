@@ -1,6 +1,6 @@
 package io.kamae.family.bot.core.security
 
-import io.kamae.family.bot.jpa.repository.ApplicationUserRepository
+import io.kamae.family.bot.core.jpa.repository.ApplicationUserRepository
 import io.kamae.family.bot.core.security.consts.AuthorizationConstants.GUEST_USER
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

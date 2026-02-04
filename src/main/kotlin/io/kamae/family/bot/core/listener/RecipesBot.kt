@@ -2,7 +2,7 @@ package io.kamae.family.bot.core.listener
 
 import io.kamae.family.bot.core.config.TelegramBotConfig
 import io.kamae.family.bot.core.domain.model.TelegramResponse
-import io.kamae.family.bot.core.domain.listener.delegate.TelegramBotDelegate
+import io.kamae.family.bot.core.listener.delegate.TelegramBotDelegate
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage

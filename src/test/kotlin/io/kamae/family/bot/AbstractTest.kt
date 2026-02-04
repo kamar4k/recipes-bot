@@ -1,13 +1,13 @@
 package io.kamae.family.bot
 
-import io.kamae.family.bot.client.dto.ListRecipesRsDto
-import io.kamae.family.bot.client.dto.PostRecipeRqDto
-import io.kamae.family.bot.client.dto.RecipeRsDto
-import io.kamae.family.bot.client.dto.RecipeShortInfoDto
 import io.kamae.family.bot.core.domain.model.CommandContext
 import io.kamae.family.bot.core.domain.model.TelegramAction
 import io.kamae.family.bot.core.domain.model.TelegramUserInfo
-import io.kamae.family.bot.provider.context.MapCommandContext
+import io.kamae.family.bot.core.provider.context.MapCommandContext
+import io.kamae.family.bot.recipes.client.dto.ListRecipesRsDto
+import io.kamae.family.bot.recipes.client.dto.PostRecipeRqDto
+import io.kamae.family.bot.recipes.client.dto.RecipeRsDto
+import io.kamae.family.bot.recipes.client.dto.RecipeShortInfoDto
 import io.mockk.clearAllMocks
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.TestInstance

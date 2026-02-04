@@ -1,10 +1,9 @@
 package io.kamae.family.bot.core.api
 
 import io.kamae.family.bot.core.domain.model.CommandContext
-import io.kamae.family.bot.core.domain.model.TelegramActionResult
 import io.kamae.family.bot.core.domain.model.TelegramAction
+import io.kamae.family.bot.core.domain.model.TelegramActionResult
 import io.kamae.family.bot.core.domain.model.TelegramResponse
-import io.kamae.family.bot.core.api.BotKeyboard
 
 interface ActionService {
     fun executeAndGetResult(telegramAction: TelegramAction): TelegramActionResult

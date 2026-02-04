@@ -2,12 +2,14 @@ package io.kamae.family.bot.core.domain.parser
 
 import io.kamae.family.bot.core.domain.model.CommandContext
 import io.kamae.family.bot.core.domain.model.TelegramResponse
-import io.kamae.family.bot.domain.telegram.enums.RecipesCommand
 import io.kamae.family.bot.core.exception.TelegramException
+import io.kamae.family.bot.core.factory.CommandSetFactory
 import org.springframework.stereotype.Component
 
 @Component
-class TelegramRecipesMessageHandler {
+class TelegramRecipesMessageHandler(
+    private val commandSetFactory: CommandSetFactory
+) {
 
     companion object {
         private const val MESSAGE_PATTERN = "(?s)^/[a-z\\-]+((\\s.+)|$|(\\n.+))"
@@ -32,7 +34,7 @@ class TelegramRecipesMessageHandler {
 
                 return CommandContext(command, data)
             } else {
-                return CommandContext(RecipesCommand.searchByAlias(text).command, null)
+                return CommandContext(commandSetFactory.searchByAlias(text).command, null)
             }
         }
     }

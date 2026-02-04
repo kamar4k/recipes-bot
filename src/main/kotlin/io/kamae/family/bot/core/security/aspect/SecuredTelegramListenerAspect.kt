@@ -23,7 +23,7 @@ class SecuredTelegramListenerAspect(
     }
     companion object {
         private const val SECURED_ANNOTATION =
-            "io.kamae.family.bot.security.annotation.SecuredTelegramListener"
+            "io.kamae.family.bot.core.security.annotation.SecuredTelegramListener"
 
         private val logger = LoggerFactory.getLogger(SecuredTelegramListenerAspect::class.java)
     }

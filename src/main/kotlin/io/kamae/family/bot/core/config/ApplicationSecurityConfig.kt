@@ -1,7 +1,7 @@
 package io.kamae.family.bot.core.config
 
+import io.kamae.family.bot.core.jpa.repository.ApplicationUserRepository
 import io.kamae.family.bot.core.listener.delegate.TelegramBotDelegate
-import io.kamae.family.bot.jpa.repository.ApplicationUserRepository
 import io.kamae.family.bot.core.security.ApplicationUserDetailsService
 import io.kamae.family.bot.core.security.UserRole
 import io.kamae.family.bot.core.security.annotation.SecuredTelegramListener
