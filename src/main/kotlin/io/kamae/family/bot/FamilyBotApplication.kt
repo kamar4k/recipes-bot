@@ -1,6 +1,6 @@
 package io.kamae.family.bot
 
-import io.kamae.family.bot.config.TelegramBotConfig
+import io.kamae.family.bot.core.config.TelegramBotConfig
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
