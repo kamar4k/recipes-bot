@@ -23,8 +23,8 @@ class ApplicationUserDetailsService(
 
         return applicationUserRepository.getByUsernameEquals(username)
             ?.let {
-                logger.debug("#userDetails user {} successfully authorized with role={}", username, it.role)
-                ApplicationUser(it.username, it.role)
+                logger.debug("#userDetails user {} successfully authorized with roles={}", username, it.role)
+                ApplicationUser(it.username, it.role.split(","))
             }
             ?:let{
                 logger.debug("#userDetails user {} not found and authorized as guest", username)

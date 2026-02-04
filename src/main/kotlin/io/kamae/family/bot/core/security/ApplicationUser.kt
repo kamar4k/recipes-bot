@@ -9,13 +9,13 @@ import org.springframework.security.crypto.password.PasswordEncoder
 
 class ApplicationUser(
     private val username: String,
-    role: UserRole
+    roles: List<String>
 ): UserDetails {
     companion object {
         private val passwordEncoder: PasswordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder()
     }
 
-    private val authorities = mutableListOf(SimpleGrantedAuthority(role.name))
+    private val authorities = roles.map { SimpleGrantedAuthority(it) }.toMutableList()
 
     override fun getAuthorities(): MutableCollection<out GrantedAuthority> {
         return authorities

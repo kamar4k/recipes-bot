@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service
 import java.util.*
 
 @Service
-@PreAuthorize("hasRole('READER')")
+@PreAuthorize("hasRole('RECIPES_READER')")
 class GetRecipeActionService(private val recipesServiceClient: RecipesServiceClient) : ActionService {
     override fun executeAndGetResult(telegramAction: TelegramAction): TelegramActionResult {
         val textId = telegramAction.commandContext.text

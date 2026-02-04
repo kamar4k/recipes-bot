@@ -1,7 +1,6 @@
 package io.kamae.family.bot.recipes.service
 
 import io.kamae.family.bot.AbstractTest
-import io.kamae.family.bot.core.api.TelegramBotCommand
 import io.kamae.family.bot.core.domain.enums.CoreCommand
 import io.kamae.family.bot.core.factory.CommandSetFactory
 import io.kamae.family.bot.core.service.HelpActionService

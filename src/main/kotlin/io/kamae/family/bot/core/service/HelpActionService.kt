@@ -5,11 +5,9 @@ import io.kamae.family.bot.core.api.ActionService.Companion.prepareResultWithTex
 import io.kamae.family.bot.core.domain.model.TelegramAction
 import io.kamae.family.bot.core.domain.model.TelegramActionResult
 import io.kamae.family.bot.core.factory.CommandSetFactory
-import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Service
 
 @Service
-@PreAuthorize("hasRole('GUEST')")
 class HelpActionService(
     private val commandSetFactory: CommandSetFactory
 ) : ActionService {

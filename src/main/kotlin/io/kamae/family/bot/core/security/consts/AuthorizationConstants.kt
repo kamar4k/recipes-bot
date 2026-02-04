@@ -1,7 +1,7 @@
 package io.kamae.family.bot.core.security.consts
 
 import io.kamae.family.bot.core.security.ApplicationUser
-import io.kamae.family.bot.core.security.UserRole
+import io.kamae.family.bot.recipes.domain.RecipesUserRole
 import org.springframework.security.core.userdetails.UserDetails
 
 object AuthorizationConstants {
@@ -9,5 +9,5 @@ object AuthorizationConstants {
 
     const val EMPTY_PASSWORD = "null"
 
-    val GUEST_USER: UserDetails = ApplicationUser(GUEST_USER_NAME, UserRole.ROLE_GUEST)
+    val GUEST_USER: UserDetails = ApplicationUser(GUEST_USER_NAME, listOf(RecipesUserRole.ROLE_RECIPES_GUEST.name))
 }

@@ -1,7 +1,9 @@
 package io.kamae.family.bot.core.jpa.entity
 
-import io.kamae.family.bot.core.security.UserRole
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 import java.util.*
 
 @Entity
@@ -12,9 +14,9 @@ class ApplicationUserEntity(
     val id: UUID,
     @Column(name = "username")
     val username: String,
-    @Enumerated(EnumType.STRING)
+
     @Column(name = "role")
-    val role: UserRole
+    val role: String
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

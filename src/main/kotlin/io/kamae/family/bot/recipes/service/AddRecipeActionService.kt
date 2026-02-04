@@ -16,7 +16,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Service
 
 @Service
-@PreAuthorize("hasRole('EDITOR')")
+@PreAuthorize("hasRole('RECIPES_EDITOR')")
 class AddRecipeActionService(private val recipesServiceClient: RecipesServiceClient) : ActionService {
     companion object {
         private const val CANCELLATION_MESSAGE = "Для отмены нажмите кнопку или введите 'Отменить'"

@@ -8,6 +8,7 @@ import io.kamae.family.bot.core.jpa.entity.ApplicationUserEntity
 import io.kamae.family.bot.core.jpa.repository.ApplicationUserRepository
 import io.kamae.family.bot.core.testinstances.auth.ApplicationAuthorizationTestConfiguration
 import io.kamae.family.bot.core.testinstances.auth.TestSecuredTelegramBotDelegate
+import io.kamae.family.bot.recipes.domain.RecipesUserRole
 import io.mockk.CapturingSlot
 import io.mockk.every
 import io.mockk.justRun
@@ -55,9 +56,9 @@ class AuthorizationTest : AbstractTest() {
 
     @ParameterizedTest
     @MethodSource("testCases")
-    fun testAuthorization(role: UserRole?, expected: Map<UserRole, Either<KClass<Throwable>, Boolean>>) {
+    fun testAuthorization(role: RecipesUserRole?, expected: Map<RecipesUserRole, Either<KClass<Throwable>, Boolean>>) {
 
-        val slot = CapturingSlot<MutableMap<UserRole, Either<Throwable, Boolean>>>()
+        val slot = CapturingSlot<MutableMap<RecipesUserRole, Either<Throwable, Boolean>>>()
         justRun { testSecuredTelegramBot.fixResult(capture(slot)) }
 
         every { update.hasMessage() } returns true
@@ -66,7 +67,7 @@ class AuthorizationTest : AbstractTest() {
         every { user.userName } returns TEST_USER_NAME
 
         role?.let {
-            val userEntity = ApplicationUserEntity(UUID.randomUUID(), TEST_USER_NAME, role)
+            val userEntity = ApplicationUserEntity(UUID.randomUUID(), TEST_USER_NAME, role.name)
             applicationUserRepository.save(userEntity)
         }
 
@@ -87,47 +88,47 @@ class AuthorizationTest : AbstractTest() {
     private fun testCases(): List<Arguments> = listOf(
         Arguments.of(
             null,
-            mapOf<UserRole, Either<KClass<out Throwable>, Boolean>>(
-                UserRole.ROLE_GUEST to Either.Right(true),
-                UserRole.ROLE_READER to Either.Left(AuthorizationDeniedException::class),
-                UserRole.ROLE_EDITOR to Either.Left(AuthorizationDeniedException::class),
-                UserRole.ROLE_ADMIN to Either.Left(AuthorizationDeniedException::class),
+            mapOf<RecipesUserRole, Either<KClass<out Throwable>, Boolean>>(
+                RecipesUserRole.ROLE_RECIPES_GUEST to Either.Right(true),
+                RecipesUserRole.ROLE_RECIPES_READER to Either.Left(AuthorizationDeniedException::class),
+                RecipesUserRole.ROLE_RECIPES_EDITOR to Either.Left(AuthorizationDeniedException::class),
+                RecipesUserRole.ROLE_RECIPES_ADMIN to Either.Left(AuthorizationDeniedException::class),
             )
         ),
         Arguments.of(
-            UserRole.ROLE_GUEST,
-            mapOf<UserRole, Either<KClass<out Throwable>, Boolean>>(
-                UserRole.ROLE_GUEST to Either.Right(true),
-                UserRole.ROLE_READER to Either.Left(AuthorizationDeniedException::class),
-                UserRole.ROLE_EDITOR to Either.Left(AuthorizationDeniedException::class),
-                UserRole.ROLE_ADMIN to Either.Left(AuthorizationDeniedException::class),
+            RecipesUserRole.ROLE_RECIPES_GUEST,
+            mapOf<RecipesUserRole, Either<KClass<out Throwable>, Boolean>>(
+                RecipesUserRole.ROLE_RECIPES_GUEST to Either.Right(true),
+                RecipesUserRole.ROLE_RECIPES_READER to Either.Left(AuthorizationDeniedException::class),
+                RecipesUserRole.ROLE_RECIPES_EDITOR to Either.Left(AuthorizationDeniedException::class),
+                RecipesUserRole.ROLE_RECIPES_ADMIN to Either.Left(AuthorizationDeniedException::class),
             )
         ),
         Arguments.of(
-            UserRole.ROLE_READER,
-            mapOf<UserRole, Either<KClass<out Throwable>, Boolean>>(
-                UserRole.ROLE_GUEST to Either.Right(true),
-                UserRole.ROLE_READER to Either.Right(true),
-                UserRole.ROLE_EDITOR to Either.Left(AuthorizationDeniedException::class),
-                UserRole.ROLE_ADMIN to Either.Left(AuthorizationDeniedException::class),
+            RecipesUserRole.ROLE_RECIPES_READER,
+            mapOf<RecipesUserRole, Either<KClass<out Throwable>, Boolean>>(
+                RecipesUserRole.ROLE_RECIPES_GUEST to Either.Right(true),
+                RecipesUserRole.ROLE_RECIPES_READER to Either.Right(true),
+                RecipesUserRole.ROLE_RECIPES_EDITOR to Either.Left(AuthorizationDeniedException::class),
+                RecipesUserRole.ROLE_RECIPES_ADMIN to Either.Left(AuthorizationDeniedException::class),
             )
         ),
         Arguments.of(
-            UserRole.ROLE_EDITOR,
-            mapOf<UserRole, Either<KClass<out Throwable>, Boolean>>(
-                UserRole.ROLE_GUEST to Either.Right(true),
-                UserRole.ROLE_READER to Either.Right(true),
-                UserRole.ROLE_EDITOR to Either.Right(true),
-                UserRole.ROLE_ADMIN to Either.Left(AuthorizationDeniedException::class),
+            RecipesUserRole.ROLE_RECIPES_EDITOR,
+            mapOf<RecipesUserRole, Either<KClass<out Throwable>, Boolean>>(
+                RecipesUserRole.ROLE_RECIPES_GUEST to Either.Right(true),
+                RecipesUserRole.ROLE_RECIPES_READER to Either.Right(true),
+                RecipesUserRole.ROLE_RECIPES_EDITOR to Either.Right(true),
+                RecipesUserRole.ROLE_RECIPES_ADMIN to Either.Left(AuthorizationDeniedException::class),
             )
         ),
         Arguments.of(
-            UserRole.ROLE_ADMIN,
-            mapOf<UserRole, Either<KClass<out Throwable>, Boolean>>(
-                UserRole.ROLE_GUEST to Either.Right(true),
-                UserRole.ROLE_READER to Either.Right(true),
-                UserRole.ROLE_EDITOR to Either.Right(true),
-                UserRole.ROLE_ADMIN to Either.Right(true),
+            RecipesUserRole.ROLE_RECIPES_ADMIN,
+            mapOf<RecipesUserRole, Either<KClass<out Throwable>, Boolean>>(
+                RecipesUserRole.ROLE_RECIPES_GUEST to Either.Right(true),
+                RecipesUserRole.ROLE_RECIPES_READER to Either.Right(true),
+                RecipesUserRole.ROLE_RECIPES_EDITOR to Either.Right(true),
+                RecipesUserRole.ROLE_RECIPES_ADMIN to Either.Right(true),
             )
         )
     )

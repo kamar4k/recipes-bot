@@ -12,7 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Service
 
 @Service
-@PreAuthorize("hasRole('EDITOR')")
+@PreAuthorize("hasRole('RECIPES_EDITOR')")
 class ListRecipesActionService(private val recipesServiceClient: RecipesServiceClient) : ActionService {
     override fun executeAndGetResult(telegramAction: TelegramAction): TelegramActionResult {
         val recipes = Either.catch { recipesServiceClient.listRecipes() }

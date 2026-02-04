@@ -3,38 +3,25 @@ package io.kamae.family.bot.core.config
 import io.kamae.family.bot.core.jpa.repository.ApplicationUserRepository
 import io.kamae.family.bot.core.listener.delegate.TelegramBotDelegate
 import io.kamae.family.bot.core.security.ApplicationUserDetailsService
-import io.kamae.family.bot.core.security.UserRole
 import io.kamae.family.bot.core.security.annotation.SecuredTelegramListener
 import io.kamae.family.bot.core.security.aspect.SecuredTelegramListenerAspect
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.DependsOn
-import org.springframework.context.annotation.EnableAspectJAutoProxy
+import org.springframework.boot.autoconfigure.security.servlet.PathRequest
+import org.springframework.context.annotation.*
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.context.event.EventListener
-import org.springframework.security.access.hierarchicalroles.RoleHierarchy
-import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl
 import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.config.Customizer.withDefaults
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
+import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.core.userdetails.UserDetailsService
+import org.springframework.security.web.SecurityFilterChain
 
 
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true, proxyTargetClass = true)
 @EnableAspectJAutoProxy(proxyTargetClass = true)
 class ApplicationSecurityConfig {
-    @Bean
-    fun roleHierarchy(): RoleHierarchy {
-        val hierarchy = """
-            ${UserRole.ROLE_ADMIN.name} > ${UserRole.ROLE_EDITOR.name}
-            ${UserRole.ROLE_EDITOR.name} > ${UserRole.ROLE_READER.name}
-            ${UserRole.ROLE_READER.name} > ${UserRole.ROLE_GUEST.name}
-        """.trimIndent()
-
-        return RoleHierarchyImpl.fromHierarchy(hierarchy)
-    }
-
     @Bean
     fun authenticationManager(config: AuthenticationConfiguration): AuthenticationManager {
         return config.authenticationManager
@@ -74,5 +61,22 @@ class ApplicationSecurityConfig {
 
             error(msgBuilder.toString())
         }
+    }
+
+    @Bean
+    @Profile("h2")
+    fun filterChain(http: HttpSecurity): SecurityFilterChain {
+        http
+            .authorizeHttpRequests {
+                it.requestMatchers(PathRequest.toH2Console())
+                    .permitAll()
+                    .anyRequest()
+                    .authenticated()
+            }
+            .csrf {it.ignoringRequestMatchers(PathRequest.toH2Console()) }
+            .headers { headers -> headers.frameOptions { it.sameOrigin() } }
+            .formLogin(withDefaults())
+
+        return http.build()
     }
 }
