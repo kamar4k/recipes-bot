@@ -1,6 +1,7 @@
 package io.kamae.family.bot.core.security.aspect
 
 import io.kamae.family.bot.AbstractTest
+import io.kamae.family.bot.core.domain.model.TelegramUpdateEvent
 import io.kamae.family.bot.core.security.consts.AuthorizationConstants.EMPTY_PASSWORD
 import io.mockk.MockKAnnotations
 import io.mockk.every
@@ -53,19 +54,12 @@ class SecuredTelegramListenerAspectTest : AbstractTest() {
         every { authenticationManager.authenticate(any<Authentication>()) } returns mockk<Authentication>()
     }
 
-    @Test
-    fun fillAuthorizationContext_nullUpdate() {
-        securedTelegramListenerAspect.fillAuthorizationContext(mockedJoinPoint, null)
-
-        verify { authenticationManager.authenticate(expectedAuthentication(null)) }
-    }
-
     @ParameterizedTest(name = "{index}. {0}")
     @MethodSource("testCases")
     fun fillAuthorizationContext_success(desc: String, mockAction: () -> Unit, resultUsername: String?) {
         mockAction.invoke()
 
-        securedTelegramListenerAspect.fillAuthorizationContext(mockedJoinPoint, mockedUpdate)
+        securedTelegramListenerAspect.fillAuthorizationContext(mockedJoinPoint, TelegramUpdateEvent(mockedUpdate))
 
         verify { authenticationManager.authenticate(expectedAuthentication(resultUsername)) }
     }

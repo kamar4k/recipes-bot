@@ -2,10 +2,11 @@ package io.kamae.family.bot.recipes.service
 
 import arrow.core.Either
 import feign.FeignException.NotFound
-import io.kamae.family.bot.core.api.ActionService
 import io.kamae.family.bot.core.api.ActionService.Companion.prepareResultWithText
+import io.kamae.family.bot.core.api.TelegramBotMessageSender
 import io.kamae.family.bot.core.domain.model.TelegramAction
 import io.kamae.family.bot.core.domain.model.TelegramActionResult
+import io.kamae.family.bot.core.service.AbstractDefaultActionService
 import io.kamae.family.bot.recipes.client.RecipesServiceClient
 import io.kamae.family.bot.recipes.client.dto.RecipeRsDto
 import org.springframework.security.access.prepost.PreAuthorize
@@ -14,7 +15,10 @@ import java.util.*
 
 @Service
 @PreAuthorize("hasRole('RECIPES_READER')")
-class GetRecipeActionService(private val recipesServiceClient: RecipesServiceClient) : ActionService {
+class GetRecipeActionService(
+    private val recipesServiceClient: RecipesServiceClient,
+    sender: TelegramBotMessageSender
+) : AbstractDefaultActionService(sender) {
     override fun executeAndGetResult(telegramAction: TelegramAction): TelegramActionResult {
         val textId = telegramAction.commandContext.text
         val parsedUUID = Either.catch { UUID.fromString(textId) }

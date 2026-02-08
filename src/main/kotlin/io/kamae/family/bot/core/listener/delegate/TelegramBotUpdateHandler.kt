@@ -1,48 +1,52 @@
 package io.kamae.family.bot.core.listener.delegate
 
 import io.kamae.family.bot.core.api.ContextProvider
+import io.kamae.family.bot.core.api.TelegramBotMessageSender
 import io.kamae.family.bot.core.domain.model.*
 import io.kamae.family.bot.core.domain.parser.TelegramRecipesMessageHandler
 import io.kamae.family.bot.core.exception.TelegramException
 import io.kamae.family.bot.core.factory.ActionServiceFactory
 import io.kamae.family.bot.core.security.AuthorizationUtils
 import io.kamae.family.bot.core.security.annotation.SecuredTelegramListener
+import org.springframework.context.event.EventListener
 import org.springframework.security.authorization.AuthorizationDeniedException
 import org.springframework.stereotype.Component
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.Update
 
-interface TelegramBotDelegate {
-    fun processUpdate(update: Update): TelegramResponse
+interface TelegramBotUpdateHandler {
+    fun processUpdate(telegramBotUpdateEvent: TelegramUpdateEvent)
 }
 
 @Component
 @SecuredTelegramListener
-class RecipesBotDelegate(
+class TelegramBotUpdateHandlerImpl(
     private val telegramMessageHandler: TelegramRecipesMessageHandler,
     private val telegramBotHandlerFactory: ActionServiceFactory,
     private val authorizationUtils: AuthorizationUtils,
-    private val contextProvider: ContextProvider
-) : TelegramBotDelegate {
-    override fun processUpdate(update: Update): TelegramResponse {
-        val (chatId: Long, text: String) = getChatIdAndTextFromUpdate(update)
+    private val contextProvider: ContextProvider,
+    private val telegramBotMessageSender: TelegramBotMessageSender
+) : TelegramBotUpdateHandler {
 
-        return try {
+    @EventListener(TelegramUpdateEvent::class)
+    override fun processUpdate(telegramBotUpdateEvent: TelegramUpdateEvent) {
+        val (chatId: Long, text: String) = getChatIdAndTextFromUpdate(telegramBotUpdateEvent.update)
+
+        try {
             val context = getContext(chatId, text)
 
             val actionResult = executeActionAndGetResult(context, chatId)
 
             setNextQuestionOrClearContext(actionResult, chatId)
-
-            actionResult.telegramResponse
         } catch (ex: TelegramException) {
             contextProvider.removeContextForChatId(chatId)
-            ex.telegramResponse
+            sendDefaultMessage(ex.telegramResponse)
         } catch (ex: AuthorizationDeniedException) {
             contextProvider.removeContextForChatId(chatId)
-            TelegramResponse("У вас не хватает прав на выполнение команды", chatId)
+            sendDefaultMessage(TelegramResponse("У вас не хватает прав на выполнение команды", chatId))
         } catch (ex: Exception) {
             contextProvider.removeContextForChatId(chatId)
-            TelegramResponse(ex.message ?: "Ошибка обработки запроса", chatId)
+            sendDefaultMessage(TelegramResponse(ex.message ?: "Ошибка обработки запроса", chatId))
         }
     }
 
@@ -57,8 +61,8 @@ class RecipesBotDelegate(
     ): TelegramActionResult {
         val userName = authorizationUtils.getUserName()
         val action = TelegramAction(context, TelegramUserInfo(chatId, userName))
-        val actionResult = telegramBotHandlerFactory.getActionService(context.command).executeAndGetResult(action)
-        return actionResult
+        return telegramBotHandlerFactory.getActionService(context.command)
+            .executeAction(action)
     }
 
     private fun getContext(
@@ -92,5 +96,12 @@ class RecipesBotDelegate(
         } else {
             error("Не удалось определить chatId и text в сообщении")
         }
+    }
+
+    private fun sendDefaultMessage(
+        telegramResponse: TelegramResponse,
+    ) {
+        val sendMessage = SendMessage(telegramResponse.chatId.toString(), telegramResponse.text)
+        telegramBotMessageSender.sendMessage(sendMessage)
     }
 }

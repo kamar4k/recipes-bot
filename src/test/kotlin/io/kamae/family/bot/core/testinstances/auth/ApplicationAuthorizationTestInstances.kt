@@ -1,8 +1,8 @@
 package io.kamae.family.bot.core.testinstances.auth
 
 import arrow.core.Either
-import io.kamae.family.bot.core.domain.model.TelegramResponse
-import io.kamae.family.bot.core.listener.delegate.TelegramBotDelegate
+import io.kamae.family.bot.core.domain.model.TelegramUpdateEvent
+import io.kamae.family.bot.core.listener.delegate.TelegramBotUpdateHandler
 import io.kamae.family.bot.core.security.annotation.SecuredTelegramListener
 import io.kamae.family.bot.recipes.domain.RecipesUserRole
 import org.springframework.boot.test.context.TestComponent
@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Primary
 import org.springframework.security.access.prepost.PreAuthorize
-import org.telegram.telegrambots.meta.api.objects.Update
 
 
 @TestConfiguration
@@ -38,8 +37,8 @@ class ApplicationAuthorizationTestConfiguration {
 @SecuredTelegramListener
 open class TestSecuredTelegramBotDelegate(
     private val securedClassesMap: Map<RecipesUserRole, AbstractTestAuthorizationInstance>
-) : TelegramBotDelegate {
-    override fun processUpdate(update: Update): TelegramResponse {
+) : TelegramBotUpdateHandler {
+    override fun processUpdate(telegramUpdateEvent: TelegramUpdateEvent) {
         val results: MutableMap<RecipesUserRole, Either<Throwable, Boolean>> = mutableMapOf()
 
         results[RecipesUserRole.ROLE_RECIPES_GUEST] = Either.catch { securedClassesMap[RecipesUserRole.ROLE_RECIPES_GUEST]!!.returnTrue() }
@@ -48,8 +47,6 @@ open class TestSecuredTelegramBotDelegate(
         results[RecipesUserRole.ROLE_RECIPES_ADMIN] = Either.catch { securedClassesMap[RecipesUserRole.ROLE_RECIPES_ADMIN]!!.returnTrue() }
 
         fixResult(results)
-
-        return TelegramResponse("", 1234L)
     }
 
     open fun fixResult(result: MutableMap<RecipesUserRole, Either<Throwable, Boolean>>) {

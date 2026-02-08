@@ -8,10 +8,13 @@ import io.kamae.family.bot.recipes.client.dto.ListRecipesRsDto
 import io.kamae.family.bot.recipes.client.dto.PostRecipeRqDto
 import io.kamae.family.bot.recipes.client.dto.RecipeRsDto
 import io.kamae.family.bot.recipes.client.dto.RecipeShortInfoDto
+import io.mockk.MockKAnnotations
 import io.mockk.clearAllMocks
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
 import org.springframework.test.context.ActiveProfiles
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -77,6 +80,15 @@ abstract class AbstractTest {
     fun clearMocks() {
         clearAllMocks()
     }
+
+    @BeforeAll
+    fun init() {
+        MockKAnnotations.init(this)
+    }
+
+    protected fun baseMessageBuilder(message: String): SendMessage.SendMessageBuilder =
+        SendMessage.builder().text(message).chatId(TEST_CHAT_ID)
+
 
     protected fun formAction(command: String = "/any", text: String? = null) =
         TelegramAction(CommandContext(command, text), TEST_CHAT_ID, TEST_AUTHOR)

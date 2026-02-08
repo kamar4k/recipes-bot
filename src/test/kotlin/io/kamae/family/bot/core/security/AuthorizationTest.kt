@@ -4,6 +4,7 @@ import arrow.core.Either
 import com.ninjasquad.springmockk.SpykBean
 import io.kamae.family.bot.AbstractTest
 import io.kamae.family.bot.FamilyBotApplication
+import io.kamae.family.bot.core.domain.model.TelegramUpdateEvent
 import io.kamae.family.bot.core.jpa.entity.ApplicationUserEntity
 import io.kamae.family.bot.core.jpa.repository.ApplicationUserRepository
 import io.kamae.family.bot.core.testinstances.auth.ApplicationAuthorizationTestConfiguration
@@ -71,7 +72,7 @@ class AuthorizationTest : AbstractTest() {
             applicationUserRepository.save(userEntity)
         }
 
-        testSecuredTelegramBot.processUpdate(update)
+        testSecuredTelegramBot.processUpdate(TelegramUpdateEvent(update))
 
         slot.captured.forEach {
             val expectedElement = expected[it.key]!!

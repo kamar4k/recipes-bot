@@ -1,6 +1,6 @@
 package io.kamae.family.bot.core.config
 
-import io.kamae.family.bot.core.listener.RecipesBot
+import io.kamae.family.bot.core.listener.FamilyBot
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
 import org.springframework.context.event.ContextRefreshedEvent
@@ -10,7 +10,7 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession
 
 @Configuration
 @Profile("!test")
-class TelegramBotInitializer(private val recipesBot: RecipesBot) {
+class TelegramBotInitializer(private val recipesBot: FamilyBot) {
     @EventListener(ContextRefreshedEvent::class)
     fun initBot() {
         TelegramBotsApi(DefaultBotSession::class.java).registerBot(recipesBot)

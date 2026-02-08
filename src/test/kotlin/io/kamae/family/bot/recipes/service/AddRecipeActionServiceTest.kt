@@ -2,24 +2,26 @@ package io.kamae.family.bot.recipes.service
 
 import feign.Request
 import feign.RetryableException
-import io.kamae.family.bot.AbstractTest
 import io.kamae.family.bot.common.domain.keyboard.CancellationKeyboard
 import io.kamae.family.bot.core.domain.model.CommandContext
 import io.kamae.family.bot.core.domain.model.TelegramAction
+import io.kamae.family.bot.core.service.AbstractDefaultActionServiceTest
 import io.kamae.family.bot.recipes.client.RecipesServiceClient
 import io.kamae.family.bot.recipes.domain.keyboard.BaseKeyboard
-import io.mockk.*
+import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
+import io.mockk.justRun
+import io.mockk.mockk
+import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 
-class AddRecipeActionServiceTest : AbstractTest() {
+class AddRecipeActionServiceTest : AbstractDefaultActionServiceTest() {
     companion object {
         private const val TITLE_MSG = "Введите наименование рецепта. Для отмены нажмите кнопку или введите 'Отменить'"
         private const val INGREDIENT_MSG =
@@ -36,11 +38,6 @@ class AddRecipeActionServiceTest : AbstractTest() {
     @InjectMockKs
     private lateinit var addRecipeActionService: AddRecipeActionService
 
-    @BeforeAll
-    fun init() {
-        MockKAnnotations.init(this)
-    }
-
     @Test
     fun executeAndGetResponse_cancel() {
         val sequence = listOf(
@@ -49,7 +46,7 @@ class AddRecipeActionServiceTest : AbstractTest() {
             createElement("INPUT_INSTRUCTIONS", "Отмена")
         )
 
-        val result = addRecipeActionService.executeAndGetResult(
+        val result = addRecipeActionService.executeAction(
             TelegramAction(
                 CommandContext("/add", null, sequence), TEST_USER_INFO
             )
@@ -59,6 +56,8 @@ class AddRecipeActionServiceTest : AbstractTest() {
         assertEquals(CANCEL_MSG, result.telegramResponse.text)
         assertEquals(TEST_CHAT_ID, result.telegramResponse.chatId)
         assertEquals(BaseKeyboard, result.telegramResponse.keyboard)
+
+        verifySenderBase(CANCEL_MSG)
     }
 
     @ParameterizedTest
@@ -66,7 +65,7 @@ class AddRecipeActionServiceTest : AbstractTest() {
     fun executeAndGetResponse_apiError(exception: Exception, expectedMessage: String) {
         every { recipesServiceClient.addRecipe(any()) } throws exception
 
-        val result = addRecipeActionService.executeAndGetResult(fullInput())
+        val result = addRecipeActionService.executeAction(fullInput())
 
         verify { recipesServiceClient.addRecipe(TEST_RECIPE_DTO) }
         assertNull(result.nextQuestion)
@@ -74,6 +73,8 @@ class AddRecipeActionServiceTest : AbstractTest() {
         assertEquals(TEST_CHAT_ID, result.telegramResponse.chatId)
         assertNull(result.telegramResponse.buttons)
         assertEquals(BaseKeyboard, result.telegramResponse.keyboard)
+
+        verifySenderBase(expectedMessage)
     }
 
     @Test
@@ -90,28 +91,32 @@ class AddRecipeActionServiceTest : AbstractTest() {
 
     private fun checkInitial() {
         val result =
-            addRecipeActionService.executeAndGetResult(TelegramAction(CommandContext("/add", null), TEST_USER_INFO))
+            addRecipeActionService.executeAction(TelegramAction(CommandContext("/add", null), TEST_USER_INFO))
 
         assertEquals(TITLE_MSG, result.telegramResponse.text)
         assertEquals("INPUT_NAME", result.nextQuestion?.value)
         assertEquals(TEST_CHAT_ID, result.telegramResponse.chatId)
         assertNull(result.telegramResponse.buttons)
         assertEquals(CancellationKeyboard, result.telegramResponse.keyboard)
+
+        verifySenderCancellation(TITLE_MSG)
     }
 
     private fun checkTitleInputs(sequence: MutableList<CommandContext.Element>) {
         val result =
-            addRecipeActionService.executeAndGetResult(getActionForElement(sequence, "INPUT_NAME", TEST_RECIPE_TITLE))
+            addRecipeActionService.executeAction(getActionForElement(sequence, "INPUT_NAME", TEST_RECIPE_TITLE))
         assertEquals(INGREDIENT_MSG, result.telegramResponse.text)
         assertEquals("INPUT_INGREDIENTS", result.nextQuestion?.value)
         assertEquals(TEST_CHAT_ID, result.telegramResponse.chatId)
         assertNull(result.telegramResponse.buttons)
         assertEquals(CancellationKeyboard, result.telegramResponse.keyboard)
+
+        verifySenderCancellation(INGREDIENT_MSG)
     }
 
     private fun checkIngredientInputs(sequence: MutableList<CommandContext.Element>) {
         val result =
-            addRecipeActionService.executeAndGetResult(
+            addRecipeActionService.executeAction(
                 getActionForElement(
                     sequence,
                     "INPUT_INGREDIENTS",
@@ -123,10 +128,12 @@ class AddRecipeActionServiceTest : AbstractTest() {
         assertEquals(TEST_CHAT_ID, result.telegramResponse.chatId)
         assertNull(result.telegramResponse.buttons)
         assertEquals(CancellationKeyboard, result.telegramResponse.keyboard)
+
+        verifySenderCancellation(INSTRUCTION_MSG)
     }
 
     private fun checkInstructionsInputs(sequence: MutableList<CommandContext.Element>) {
-        val result = addRecipeActionService.executeAndGetResult(
+        val result = addRecipeActionService.executeAction(
             getActionForElement(
                 sequence,
                 "INPUT_INSTRUCTIONS",
@@ -140,6 +147,8 @@ class AddRecipeActionServiceTest : AbstractTest() {
         assertEquals(BaseKeyboard, result.telegramResponse.keyboard)
 
         verify { recipesServiceClient.addRecipe(TEST_RECIPE_DTO) }
+
+        verifySenderBase(READY_MSG)
     }
 
     private fun apiErrorCases() = listOf(

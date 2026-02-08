@@ -6,7 +6,7 @@ import io.kamae.family.bot.core.domain.model.TelegramActionResult
 import io.kamae.family.bot.core.domain.model.TelegramResponse
 
 interface ActionService {
-    fun executeAndGetResult(telegramAction: TelegramAction): TelegramActionResult
+    fun executeAction(telegramAction: TelegramAction): TelegramActionResult
 
     companion object {
         fun prepareResultWithText(
