@@ -8,11 +8,13 @@ import io.kamae.family.bot.core.api.ContextProvider
 import io.kamae.family.bot.core.domain.model.CommandContext
 import io.kamae.family.bot.core.domain.model.TelegramActionResult
 import io.kamae.family.bot.core.domain.model.TelegramResponse
+import io.kamae.family.bot.core.domain.model.TelegramUpdateEvent
 import io.kamae.family.bot.core.domain.parser.TelegramRecipesMessageHandler
 import io.kamae.family.bot.core.exception.TelegramException
 import io.kamae.family.bot.core.factory.ActionServiceFactory
 import io.kamae.family.bot.core.security.AuthorizationUtils
 import io.kamae.family.bot.core.security.aspect.SecuredTelegramListenerAspect
+import io.kamae.family.bot.recipes.domain.keyboard.BaseKeyboard
 import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
@@ -31,10 +33,10 @@ import org.telegram.telegrambots.meta.api.objects.MaybeInaccessibleMessage
 import org.telegram.telegrambots.meta.api.objects.Message
 import org.telegram.telegrambots.meta.api.objects.Update
 
-class RecipesBotTest : AbstractIntegrationTest() {
+class FamilyBotTest : AbstractIntegrationTest() {
 
     @SpykBean
-    private lateinit var recipesBot: RecipesBot
+    private lateinit var familyBot: FamilyBot
 
     @MockkBean
     private lateinit var telegramMessageHandler: TelegramRecipesMessageHandler
@@ -71,11 +73,12 @@ class RecipesBotTest : AbstractIntegrationTest() {
         every { callbackQuery.message } returns callbackMessage
         every { update.callbackQuery } returns callbackQuery
         every { authorizationUtils.getUserName() } returns TEST_AUTHOR
+        every { message.messageId } returns TEST_MSG_ID
     }
 
     @Test
     fun getBotUsername_success() {
-        val result = recipesBot.botUsername
+        val result = familyBot.botUsername
 
         assertEquals("family-bot", result)
     }
@@ -93,20 +96,16 @@ class RecipesBotTest : AbstractIntegrationTest() {
         } returns CommandContext(
             TELEGRAM_COMMAND_TEXT, null
         )
-        every { actionService.executeAndGetResult(any()) } returns TelegramActionResult(
+        every { actionService.executeAction(any()) } returns TelegramActionResult(
             TelegramResponse(
                 TELEGRAM_RESPONSE_TEXT, TEST_CHAT_ID
             )
         )
         every { contextProvider.hasContext(TEST_CHAT_ID) } returns false
 
-        every { recipesBot.execute(any<SendMessage>()) } returns null
+        every { familyBot.execute(any<SendMessage>()) } returns null
 
-        recipesBot.onUpdateReceived(update)
-
-        verify {
-            recipesBot.execute(SendMessage(TEST_CHAT_ID.toString(), TELEGRAM_RESPONSE_TEXT))
-        }
+        familyBot.onUpdateReceived(update)
 
         verify {
             contextProvider.createContext(TEST_CHAT_ID, CommandContext(TELEGRAM_COMMAND_TEXT, null))
@@ -123,7 +122,7 @@ class RecipesBotTest : AbstractIntegrationTest() {
         hasMessageReturnsTrue()
         messageReturnsChatId()
         messsageReturnsText()
-        every { actionService.executeAndGetResult(any()) } returns TelegramActionResult(
+        every { actionService.executeAction(any()) } returns TelegramActionResult(
             TelegramResponse(
                 TELEGRAM_RESPONSE_TEXT, TEST_CHAT_ID
             ),
@@ -134,13 +133,9 @@ class RecipesBotTest : AbstractIntegrationTest() {
             TELEGRAM_COMMAND_TEXT, null
         )
 
-        every { recipesBot.execute(any<SendMessage>()) } returns null
+        every { familyBot.execute(any<SendMessage>()) } returns null
 
-        recipesBot.onUpdateReceived(update)
-
-        verify {
-            recipesBot.execute(SendMessage(TEST_CHAT_ID.toString(), TELEGRAM_RESPONSE_TEXT))
-        }
+        familyBot.onUpdateReceived(update)
 
         verify { contextProvider.appendAnswer(TEST_CHAT_ID, CommandContext.Answer(TELEGRAM_MESSAGE_TEXT)) }
         verify { contextProvider.getContextForChatId(TEST_CHAT_ID) }
@@ -173,19 +168,15 @@ class RecipesBotTest : AbstractIntegrationTest() {
         )
         every { contextProvider.hasContext(TEST_CHAT_ID) } returns false
 
-        every { actionService.executeAndGetResult(any()) } returns TelegramActionResult(
+        every { actionService.executeAction(any()) } returns TelegramActionResult(
             TelegramResponse(
                 TELEGRAM_RESPONSE_TEXT, TEST_CHAT_ID
             )
         )
 
-        every { recipesBot.execute(any<SendMessage>()) } returns null
+        every { familyBot.execute(any<SendMessage>()) } returns null
 
-        recipesBot.onUpdateReceived(update)
-
-        verify {
-            recipesBot.execute(SendMessage(TEST_CHAT_ID.toString(), TELEGRAM_RESPONSE_TEXT))
-        }
+        familyBot.onUpdateReceived(update)
 
         verify {
             contextProvider.createContext(TEST_CHAT_ID, CommandContext(TELEGRAM_COMMAND_TEXT, null))
@@ -212,14 +203,14 @@ class RecipesBotTest : AbstractIntegrationTest() {
         } returns CommandContext(TELEGRAM_COMMAND_TEXT, null)
         every { contextProvider.hasContext(TEST_CHAT_ID) } returns false
 
-        every { actionService.executeAndGetResult(any()) } throws RuntimeException(errorMessage)
+        every { actionService.executeAction(any()) } throws RuntimeException(errorMessage)
 
-        every { recipesBot.execute(any<SendMessage>()) } returns null
+        every { familyBot.execute(any<SendMessage>()) } returns mockk()
 
-        recipesBot.onUpdateReceived(update)
+        familyBot.onUpdateReceived(update)
 
         verify {
-            recipesBot.execute(SendMessage(TEST_CHAT_ID.toString(), expectedResponse))
+            familyBot.execute(baseMessageBuilder(expectedResponse).replyMarkup(BaseKeyboard.getKeyboard()).build())
         }
         verify {
             contextProvider.createContext(TEST_CHAT_ID, CommandContext(TELEGRAM_COMMAND_TEXT, null))
@@ -244,11 +235,11 @@ class RecipesBotTest : AbstractIntegrationTest() {
         } returns CommandContext(TELEGRAM_COMMAND_TEXT, null)
         every { contextProvider.hasContext(TEST_CHAT_ID) } returns false
 
-        every { actionService.executeAndGetResult(any()) } throws AuthorizationDeniedException("")
+        every { actionService.executeAction(any()) } throws AuthorizationDeniedException("")
 
-        every { recipesBot.execute(any<SendMessage>()) } returns null
+        every { familyBot.execute(any<SendMessage>()) } returns mockk()
 
-        recipesBot.onUpdateReceived(update)
+        familyBot.onUpdateReceived(update)
 
         verify {
             contextProvider.createContext(TEST_CHAT_ID, CommandContext(TELEGRAM_COMMAND_TEXT, null))
@@ -257,7 +248,11 @@ class RecipesBotTest : AbstractIntegrationTest() {
             contextProvider.removeContextForChatId(TEST_CHAT_ID)
         }
         verify {
-            recipesBot.execute(SendMessage(TEST_CHAT_ID.toString(), "У вас не хватает прав на выполнение команды"))
+            familyBot.execute(
+                baseMessageBuilder("У вас не хватает прав на выполнение команды")
+                    .replyMarkup(BaseKeyboard.getKeyboard())
+                    .build()
+            )
         }
 
         verifyAuthRunning()
@@ -268,7 +263,7 @@ class RecipesBotTest : AbstractIntegrationTest() {
         every { update.hasMessage() } returns false
         every { update.hasCallbackQuery() } returns false
 
-        val error = assertThrows<IllegalStateException> { recipesBot.onUpdateReceived(update) }
+        val error = assertThrows<IllegalStateException> { familyBot.onUpdateReceived(update) }
 
         assertEquals("Не удалось определить chatId и text в сообщении", error.message)
 
@@ -293,14 +288,16 @@ class RecipesBotTest : AbstractIntegrationTest() {
         )
 
 
-        every { recipesBot.execute(any<SendMessage>()) } returns null
+        every { familyBot.execute(any<SendMessage>()) } returns mockk()
 
-        recipesBot.onUpdateReceived(update)
+        familyBot.onUpdateReceived(update)
 
 
         verify(exactly = 0) { telegramBotHandlerFactory.getActionService(any()) }
         verify {
-            recipesBot.execute(SendMessage(TEST_CHAT_ID.toString(), TELEGRAM_RESPONSE_TEXT))
+            familyBot.execute(
+                baseMessageBuilder(TELEGRAM_RESPONSE_TEXT).replyMarkup(BaseKeyboard.getKeyboard()).build()
+            )
         }
         verify {
             contextProvider.removeContextForChatId(TEST_CHAT_ID)
@@ -326,6 +323,6 @@ class RecipesBotTest : AbstractIntegrationTest() {
     )
 
     private fun verifyAuthRunning() {
-        verify { securedTelegramListenerAspect.fillAuthorizationContext(any(), update) }
+        verify { securedTelegramListenerAspect.fillAuthorizationContext(any(), TelegramUpdateEvent(update)) }
     }
 }

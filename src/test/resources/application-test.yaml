@@ -19,10 +19,15 @@ spring:
           recipes-service:
             connect-timeout: 500
             read-timeout: 500
+          purchases-service:
+            connect-timeout: 500
+            read-timeout: 500
 
 external-service:
   recipes:
-    host: http://localhost:9092
+    host: http://localhost:9099
+  purchases:
+    host: http://localhost:9099
 
 logging:
   level:

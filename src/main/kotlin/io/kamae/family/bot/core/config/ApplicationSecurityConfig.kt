@@ -1,7 +1,7 @@
 package io.kamae.family.bot.core.config
 
 import io.kamae.family.bot.core.jpa.repository.ApplicationUserRepository
-import io.kamae.family.bot.core.listener.delegate.TelegramBotDelegate
+import io.kamae.family.bot.core.listener.delegate.TelegramBotUpdateHandler
 import io.kamae.family.bot.core.security.ApplicationUserDetailsService
 import io.kamae.family.bot.core.security.annotation.SecuredTelegramListener
 import io.kamae.family.bot.core.security.aspect.SecuredTelegramListenerAspect
@@ -46,7 +46,7 @@ class ApplicationSecurityConfig {
         val annotatedBeans = applicationContext.getBeansWithAnnotation(SecuredTelegramListener::class.java)
 
         val incorrectBeans = annotatedBeans.filter {
-            it.value !is TelegramBotDelegate
+            it.value !is TelegramBotUpdateHandler
         }
 
         if (incorrectBeans.isNotEmpty()) {

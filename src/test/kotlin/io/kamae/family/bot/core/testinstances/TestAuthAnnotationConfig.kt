@@ -2,8 +2,9 @@ package io.kamae.family.bot.core.testinstances
 
 import io.kamae.family.bot.AbstractTest
 import io.kamae.family.bot.core.domain.model.TelegramResponse
+import io.kamae.family.bot.core.domain.model.TelegramUpdateEvent
 import io.kamae.family.bot.core.jpa.repository.ApplicationUserRepository
-import io.kamae.family.bot.core.listener.delegate.TelegramBotDelegate
+import io.kamae.family.bot.core.listener.delegate.TelegramBotUpdateHandler
 import io.kamae.family.bot.core.security.annotation.SecuredTelegramListener
 import io.mockk.mockk
 import org.slf4j.LoggerFactory
@@ -51,13 +52,13 @@ open class InvalidClass2 {
 }
 
 @SecuredTelegramListener
-open class ValidClass: TelegramBotDelegate {
+open class ValidClass: TelegramBotUpdateHandler {
     init {
         logInitMessage(this.javaClass)
     }
 
-    override fun processUpdate(update: Update): TelegramResponse {
-        return TelegramResponse("", 1234L)
+    override fun processUpdate(telegramBotUpdateEvent: TelegramUpdateEvent) {
+
     }
 
 }

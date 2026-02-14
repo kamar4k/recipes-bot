@@ -1,0 +1,16 @@
+{
+  "data": [
+    {
+      "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+      "name": "Product Name",
+      "quantity": 123.0,
+      "predication": "2026-01-03T21:59:46.123"
+    },
+    {
+      "id": "047ac10b-58cc-4372-a567-0e02b2c3d479",
+      "name": "Product Name 2",
+      "quantity": 0.0,
+      "predication": "2026-01-04T21:59:47.123"
+    }
+  ]
+}

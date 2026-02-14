@@ -3,12 +3,13 @@ package io.kamae.family.bot.recipes.service
 import arrow.core.Either
 import feign.RetryableException
 import io.kamae.family.bot.common.domain.keyboard.CancellationKeyboard
-import io.kamae.family.bot.core.api.ActionService
 import io.kamae.family.bot.core.api.ActionService.Companion.prepareResultWithText
+import io.kamae.family.bot.core.api.TelegramBotMessageSender
 import io.kamae.family.bot.core.domain.model.CommandContext
 import io.kamae.family.bot.core.domain.model.TelegramAction
 import io.kamae.family.bot.core.domain.model.TelegramActionResult
 import io.kamae.family.bot.core.domain.model.TelegramResponse
+import io.kamae.family.bot.core.service.AbstractDefaultActionService
 import io.kamae.family.bot.recipes.client.RecipesServiceClient
 import io.kamae.family.bot.recipes.client.dto.PostRecipeRqDto
 import io.kamae.family.bot.recipes.domain.keyboard.BaseKeyboard
@@ -17,7 +18,9 @@ import org.springframework.stereotype.Service
 
 @Service
 @PreAuthorize("hasRole('RECIPES_EDITOR')")
-class AddRecipeActionService(private val recipesServiceClient: RecipesServiceClient) : ActionService {
+class AddRecipeActionService(
+    private val recipesServiceClient: RecipesServiceClient, sender: TelegramBotMessageSender
+) : AbstractDefaultActionService(sender) {
     companion object {
         private const val CANCELLATION_MESSAGE = "Для отмены нажмите кнопку или введите 'Отменить'"
     }

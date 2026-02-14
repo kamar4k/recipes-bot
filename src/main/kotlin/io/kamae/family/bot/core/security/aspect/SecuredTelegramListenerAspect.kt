@@ -1,5 +1,6 @@
 package io.kamae.family.bot.core.security.aspect
 
+import io.kamae.family.bot.core.domain.model.TelegramUpdateEvent
 import io.kamae.family.bot.core.security.consts.AuthorizationConstants
 import org.aspectj.lang.JoinPoint
 import org.aspectj.lang.annotation.Aspect
@@ -28,9 +29,9 @@ class SecuredTelegramListenerAspect(
         private val logger = LoggerFactory.getLogger(SecuredTelegramListenerAspect::class.java)
     }
 
-    @Before("@within($SECURED_ANNOTATION) && execution(* processUpdate(*)) && args(update)")
-    fun fillAuthorizationContext(joinPoint: JoinPoint, update: Update?) {
-        val username = extractUsername(update)
+    @Before("@within($SECURED_ANNOTATION) && execution(* processUpdate(*)) && args(telegramUpdateEvent)")
+    fun fillAuthorizationContext(joinPoint: JoinPoint, telegramUpdateEvent: TelegramUpdateEvent) {
+        val username = extractUsername(telegramUpdateEvent.update)
         logger.debug("#auth extracted username=$username for update event")
 
         val authentication: Authentication = UsernamePasswordAuthenticationToken(
