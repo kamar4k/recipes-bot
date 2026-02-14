@@ -1,6 +1,5 @@
 package io.kamae.family.bot.recipes.service
 
-import io.kamae.family.bot.core.domain.model.TelegramButton
 import io.kamae.family.bot.core.service.AbstractDefaultActionServiceTest
 import io.kamae.family.bot.recipes.client.RecipesServiceClient
 import io.mockk.every
@@ -33,12 +32,13 @@ class ListRecipesActionServiceTest : AbstractDefaultActionServiceTest() {
         assertNull(result.nextQuestion)
         assertEquals(expectedText, result.telegramResponse.text)
         assertEquals(TEST_CHAT_ID, result.telegramResponse.chatId)
-        assertNotNull(result.telegramResponse.buttons)
-        assertEquals(TelegramButton(TEST_RECIPE_TITLE, "/get $TEST_RECIPE_ID"), result.telegramResponse.buttons!![0])
-        assertEquals(
-            TelegramButton(TEST_ANOTHER_RECIPE_TITLE, "/get $TEST_ANOTHER_RECIPE_ID"),
-            result.telegramResponse.buttons!![1]
-        )
+        assertNotNull(result.telegramResponse.keyboard)
+
+        val keyboard = (result.telegramResponse.keyboard!!.getKeyboard() as InlineKeyboardMarkup).keyboard
+        assertEquals(TEST_RECIPE_TITLE, keyboard[0][0].text)
+        assertEquals("/get-recipe $TEST_RECIPE_ID", keyboard[0][0].callbackData)
+        assertEquals(TEST_ANOTHER_RECIPE_TITLE, keyboard[1][0].text)
+        assertEquals("/get-recipe $TEST_ANOTHER_RECIPE_ID", keyboard[1][0].callbackData)
 
         verify {
             telegramBotMessageSender.sendMessage(
@@ -47,14 +47,14 @@ class ListRecipesActionServiceTest : AbstractDefaultActionServiceTest() {
                         listOf(
                             InlineKeyboardButton.builder()
                                 .text(TEST_RECIPE_TITLE)
-                                .callbackData("/get $TEST_RECIPE_ID")
+                                .callbackData("/get-recipe $TEST_RECIPE_ID")
                                 .build(),
                         )
                     ).keyboardRow(
                         listOf(
                             InlineKeyboardButton.builder()
                                 .text(TEST_ANOTHER_RECIPE_TITLE)
-                                .callbackData("/get $TEST_ANOTHER_RECIPE_ID")
+                                .callbackData("/get-recipe $TEST_ANOTHER_RECIPE_ID")
                                 .build()
                         )
                     ).build()
@@ -73,7 +73,7 @@ class ListRecipesActionServiceTest : AbstractDefaultActionServiceTest() {
         verify { recipesServiceClient.listRecipes() }
         assertEquals(TEST_CHAT_ID, result.telegramResponse.chatId)
         assertEquals(expectedMessage, result.telegramResponse.text)
-        assertNull(result.telegramResponse.buttons)
+        assertNull(result.telegramResponse.keyboard)
 
         verifySenderOnlyMessage(expectedMessage)
     }

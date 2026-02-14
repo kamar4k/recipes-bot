@@ -14,6 +14,7 @@ import io.kamae.family.bot.core.exception.TelegramException
 import io.kamae.family.bot.core.factory.ActionServiceFactory
 import io.kamae.family.bot.core.security.AuthorizationUtils
 import io.kamae.family.bot.core.security.aspect.SecuredTelegramListenerAspect
+import io.kamae.family.bot.recipes.domain.keyboard.BaseKeyboard
 import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
@@ -72,6 +73,7 @@ class FamilyBotTest : AbstractIntegrationTest() {
         every { callbackQuery.message } returns callbackMessage
         every { update.callbackQuery } returns callbackQuery
         every { authorizationUtils.getUserName() } returns TEST_AUTHOR
+        every { message.messageId } returns TEST_MSG_ID
     }
 
     @Test
@@ -208,7 +210,7 @@ class FamilyBotTest : AbstractIntegrationTest() {
         familyBot.onUpdateReceived(update)
 
         verify {
-            familyBot.execute(SendMessage(TEST_CHAT_ID.toString(), expectedResponse))
+            familyBot.execute(baseMessageBuilder(expectedResponse).replyMarkup(BaseKeyboard.getKeyboard()).build())
         }
         verify {
             contextProvider.createContext(TEST_CHAT_ID, CommandContext(TELEGRAM_COMMAND_TEXT, null))
@@ -246,7 +248,11 @@ class FamilyBotTest : AbstractIntegrationTest() {
             contextProvider.removeContextForChatId(TEST_CHAT_ID)
         }
         verify {
-            familyBot.execute(SendMessage(TEST_CHAT_ID.toString(), "У вас не хватает прав на выполнение команды"))
+            familyBot.execute(
+                baseMessageBuilder("У вас не хватает прав на выполнение команды")
+                    .replyMarkup(BaseKeyboard.getKeyboard())
+                    .build()
+            )
         }
 
         verifyAuthRunning()
@@ -289,7 +295,9 @@ class FamilyBotTest : AbstractIntegrationTest() {
 
         verify(exactly = 0) { telegramBotHandlerFactory.getActionService(any()) }
         verify {
-            familyBot.execute(SendMessage(TEST_CHAT_ID.toString(), TELEGRAM_RESPONSE_TEXT))
+            familyBot.execute(
+                baseMessageBuilder(TELEGRAM_RESPONSE_TEXT).replyMarkup(BaseKeyboard.getKeyboard()).build()
+            )
         }
         verify {
             contextProvider.removeContextForChatId(TEST_CHAT_ID)

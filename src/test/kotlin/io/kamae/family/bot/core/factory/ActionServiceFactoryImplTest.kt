@@ -41,9 +41,9 @@ class ActionServiceFactoryImplTest : AbstractIntegrationTest() {
 
     fun factoryArguments(): List<Arguments> =
         listOf(
-            Arguments.of("/add", AddRecipeActionService::class),
-            Arguments.of("/get", GetRecipeActionService::class),
-            Arguments.of("/list", ListRecipesActionService::class),
+            Arguments.of("/add-recipe", AddRecipeActionService::class),
+            Arguments.of("/get-recipe", GetRecipeActionService::class),
+            Arguments.of("/list-recipes", ListRecipesActionService::class),
             Arguments.of("/help", HelpActionService::class),
             Arguments.of("/default", DefaultActionService::class)
         )

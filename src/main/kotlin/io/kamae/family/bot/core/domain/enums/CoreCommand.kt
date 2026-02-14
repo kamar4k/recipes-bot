@@ -12,7 +12,7 @@ enum class CoreCommand(
     override val alias: String?,
     override val desc: String?
 ): TelegramBotCommand {
-    START("/start", StartActionService::class.java, "Главное меню", "Переход в главное меню"),
+    START("/start", StartActionService::class.java, "Меню", "Переход в главное меню"),
     HELP("/help", HelpActionService::class.java, "Помощь", "Список команд"),
     DEFAULT("/default", DefaultActionService::class.java, null, null);
 }

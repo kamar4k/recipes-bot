@@ -5,4 +5,4 @@ interface TelegramBotCommand {
     val actionServiceClass: Class<out ActionService>
     val alias: String?
     val desc: String?
-}
+} //TODO уйти от енамов. Лучше пусть каждый сервис сам будет предоставлять эти данные

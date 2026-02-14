@@ -32,11 +32,14 @@ dependencies {
     implementation("org.springframework.security:spring-security-config")
     //Spring-cloud
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
+    implementation("io.github.openfeign:feign-httpclient")
     //Aspect
     implementation("org.springframework.boot:spring-boot-starter-aop")
     //Kotlin
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    //Emoji
+    implementation("com.vdurmont:emoji-java:5.1.1")
 
     //Telegram
     implementation("org.telegram:telegrambots")

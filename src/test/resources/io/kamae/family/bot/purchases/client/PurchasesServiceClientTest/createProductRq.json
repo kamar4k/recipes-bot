@@ -1,0 +1,7 @@
+{
+  "productName": "Product Name",
+  "event": {
+    "changeType": "INCREASE",
+    "changeValue": 123.0
+  }
+}

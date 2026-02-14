@@ -7,6 +7,7 @@ import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import java.util.*
 
 @FeignClient(name = "recipes-service", url = "\${external-service.recipes.host}")
@@ -18,5 +19,5 @@ interface RecipesServiceClient {
     fun getRecipe(@PathVariable recipeId: UUID): RecipeRsDto
 
     @PostMapping("/v1/recipes")
-    fun addRecipe(postRecipeRqDto: PostRecipeRqDto)
+    fun addRecipe(@RequestBody postRecipeRqDto: PostRecipeRqDto)
 }

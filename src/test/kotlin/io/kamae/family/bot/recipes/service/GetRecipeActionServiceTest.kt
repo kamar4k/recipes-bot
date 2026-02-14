@@ -36,7 +36,7 @@ class GetRecipeActionServiceTest : AbstractDefaultActionServiceTest() {
 
         assertNull(result.nextQuestion)
         assertEquals(TEST_CHAT_ID, result.telegramResponse.chatId)
-        assertNull(result.telegramResponse.buttons)
+        assertNull(result.telegramResponse.keyboard)
         assertEquals(expectedResponse, result.telegramResponse.text)
 
         verifySenderOnlyMessage(expectedResponse)
@@ -50,7 +50,7 @@ class GetRecipeActionServiceTest : AbstractDefaultActionServiceTest() {
 
         assertNull(result.nextQuestion)
         assertEquals(TEST_CHAT_ID, result.telegramResponse.chatId)
-        assertNull(result.telegramResponse.buttons)
+        assertNull(result.telegramResponse.keyboard)
         assertEquals(
             expectedMessage,
             result.telegramResponse.text
@@ -68,7 +68,7 @@ class GetRecipeActionServiceTest : AbstractDefaultActionServiceTest() {
 
         verify { recipesServiceClient.getRecipe(TEST_RECIPE_ID) }
         assertEquals(TEST_CHAT_ID, result.telegramResponse.chatId)
-        assertNull(result.telegramResponse.buttons)
+        assertNull(result.telegramResponse.keyboard)
         assertEquals(expectedMessage, result.telegramResponse.text)
 
         verifySenderOnlyMessage(expectedMessage)

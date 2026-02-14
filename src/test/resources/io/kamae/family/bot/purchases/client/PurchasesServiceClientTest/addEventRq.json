@@ -1,0 +1,6 @@
+{
+  "event": {
+    "changeType": "REDUCE",
+    "changeValue": 123.0
+  }
+}

@@ -28,17 +28,23 @@ spring:
             connect-timeout: ${RECIPES_SERVICE_TIMEOUT:10000}
             read-timeout: ${RECIPES_SERVICE_TIMEOUT:10000}
             logger-level: full
+          purchases-service:
+            connect-timeout: ${PURCHASES_SERVICE_TIMEOUT:10000}
+            read-timeout: ${PURCHASES_SERVICE_TIMEOUT:10000}
+            logger-level: full
   jackson:
     default-property-inclusion: non_null
 
 external-service:
   recipes:
     host: ${RECIPES_SERVICE_HOST:http://recipes-app-svc:8080}
+  purchases:
+    host: ${PURCHASES_SERVICE_HOST:http://purchases-analyzer-svc:8080}
 
 logging:
   level:
-    org.hibernate.sql: ${SQL_LOGGING_LEVEL:DEBUG}
-    org.hibernate.orm.jdbc.bind: ${SQL_BIND_LOGGING_LEVEL:TRACE}
+    org.hibernate.sql: ${SQL_LOGGING_LEVEL:INFO}
+    org.hibernate.orm.jdbc.bind: ${SQL_BIND_LOGGING_LEVEL:INFO}
     root: ${LOGGING_LEVEL:INFO}
     org.zalando.logbook: ${LOGBOOK_LEVEL:TRACE}
     http.logbook: ${HTTP_LOGBOOK_LEVEL:INFO}

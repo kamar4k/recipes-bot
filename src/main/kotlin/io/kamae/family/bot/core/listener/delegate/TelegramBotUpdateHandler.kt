@@ -8,6 +8,7 @@ import io.kamae.family.bot.core.exception.TelegramException
 import io.kamae.family.bot.core.factory.ActionServiceFactory
 import io.kamae.family.bot.core.security.AuthorizationUtils
 import io.kamae.family.bot.core.security.annotation.SecuredTelegramListener
+import io.kamae.family.bot.recipes.domain.keyboard.BaseKeyboard
 import org.springframework.context.event.EventListener
 import org.springframework.security.authorization.AuthorizationDeniedException
 import org.springframework.stereotype.Component
@@ -30,23 +31,23 @@ class TelegramBotUpdateHandlerImpl(
 
     @EventListener(TelegramUpdateEvent::class)
     override fun processUpdate(telegramBotUpdateEvent: TelegramUpdateEvent) {
-        val (chatId: Long, text: String) = getChatIdAndTextFromUpdate(telegramBotUpdateEvent.update)
+        val params = getChatIdAndTextFromUpdate(telegramBotUpdateEvent.update)
 
         try {
-            val context = getContext(chatId, text)
+            val context = getContext(params.chatId, params.text)
 
-            val actionResult = executeActionAndGetResult(context, chatId)
+            val actionResult = executeActionAndGetResult(context, params.chatId, params.messageId)
 
-            setNextQuestionOrClearContext(actionResult, chatId)
+            setNextQuestionOrClearContext(actionResult, params.chatId)
         } catch (ex: TelegramException) {
-            contextProvider.removeContextForChatId(chatId)
+            contextProvider.removeContextForChatId(params.chatId)
             sendDefaultMessage(ex.telegramResponse)
         } catch (ex: AuthorizationDeniedException) {
-            contextProvider.removeContextForChatId(chatId)
-            sendDefaultMessage(TelegramResponse("У вас не хватает прав на выполнение команды", chatId))
+            contextProvider.removeContextForChatId(params.chatId)
+            sendDefaultMessage(TelegramResponse("У вас не хватает прав на выполнение команды", params.chatId))
         } catch (ex: Exception) {
-            contextProvider.removeContextForChatId(chatId)
-            sendDefaultMessage(TelegramResponse(ex.message ?: "Ошибка обработки запроса", chatId))
+            contextProvider.removeContextForChatId(params.chatId)
+            sendDefaultMessage(TelegramResponse(ex.message ?: "Ошибка обработки запроса", params.chatId))
         }
     }
 
@@ -57,10 +58,11 @@ class TelegramBotUpdateHandlerImpl(
 
     private fun executeActionAndGetResult(
         context: CommandContext,
-        chatId: Long
+        chatId: Long,
+        messageId: Int?
     ): TelegramActionResult {
         val userName = authorizationUtils.getUserName()
-        val action = TelegramAction(context, TelegramUserInfo(chatId, userName))
+        val action = TelegramAction(context, TelegramUserInfo(chatId, userName), messageId)
         return telegramBotHandlerFactory.getActionService(context.command)
             .executeAction(action)
     }
@@ -88,11 +90,11 @@ class TelegramBotUpdateHandlerImpl(
         return contextProvider.getContextForChatId(chatId)!!
     }
 
-    private fun getChatIdAndTextFromUpdate(update: Update): Pair<Long, String> {
+    private fun getChatIdAndTextFromUpdate(update: Update): TelegramUpdateParams {
         return if (update.hasMessage()) {
-            update.message.chatId to update.message.text
+            TelegramUpdateParams(update.message.chatId, update.message.text, update.message.messageId)
         } else if (update.hasCallbackQuery()) {
-            update.callbackQuery.message.chatId to update.callbackQuery.data
+            TelegramUpdateParams(update.callbackQuery.message.chatId, update.callbackQuery.data, null)
         } else {
             error("Не удалось определить chatId и text в сообщении")
         }
@@ -102,6 +104,7 @@ class TelegramBotUpdateHandlerImpl(
         telegramResponse: TelegramResponse,
     ) {
         val sendMessage = SendMessage(telegramResponse.chatId.toString(), telegramResponse.text)
+        sendMessage.replyMarkup = BaseKeyboard.getKeyboard()
         telegramBotMessageSender.sendMessage(sendMessage)
     }
 }

@@ -48,7 +48,7 @@ class AddRecipeActionServiceTest : AbstractDefaultActionServiceTest() {
 
         val result = addRecipeActionService.executeAction(
             TelegramAction(
-                CommandContext("/add", null, sequence), TEST_USER_INFO
+                CommandContext("/add-recipe", null, sequence), TEST_USER_INFO
             )
         )
 
@@ -71,7 +71,6 @@ class AddRecipeActionServiceTest : AbstractDefaultActionServiceTest() {
         assertNull(result.nextQuestion)
         assertEquals(expectedMessage, result.telegramResponse.text)
         assertEquals(TEST_CHAT_ID, result.telegramResponse.chatId)
-        assertNull(result.telegramResponse.buttons)
         assertEquals(BaseKeyboard, result.telegramResponse.keyboard)
 
         verifySenderBase(expectedMessage)
@@ -91,12 +90,11 @@ class AddRecipeActionServiceTest : AbstractDefaultActionServiceTest() {
 
     private fun checkInitial() {
         val result =
-            addRecipeActionService.executeAction(TelegramAction(CommandContext("/add", null), TEST_USER_INFO))
+            addRecipeActionService.executeAction(TelegramAction(CommandContext("/add-recipe", null), TEST_USER_INFO))
 
         assertEquals(TITLE_MSG, result.telegramResponse.text)
         assertEquals("INPUT_NAME", result.nextQuestion?.value)
         assertEquals(TEST_CHAT_ID, result.telegramResponse.chatId)
-        assertNull(result.telegramResponse.buttons)
         assertEquals(CancellationKeyboard, result.telegramResponse.keyboard)
 
         verifySenderCancellation(TITLE_MSG)
@@ -108,7 +106,6 @@ class AddRecipeActionServiceTest : AbstractDefaultActionServiceTest() {
         assertEquals(INGREDIENT_MSG, result.telegramResponse.text)
         assertEquals("INPUT_INGREDIENTS", result.nextQuestion?.value)
         assertEquals(TEST_CHAT_ID, result.telegramResponse.chatId)
-        assertNull(result.telegramResponse.buttons)
         assertEquals(CancellationKeyboard, result.telegramResponse.keyboard)
 
         verifySenderCancellation(INGREDIENT_MSG)
@@ -126,7 +123,6 @@ class AddRecipeActionServiceTest : AbstractDefaultActionServiceTest() {
         assertEquals(INSTRUCTION_MSG, result.telegramResponse.text)
         assertEquals("INPUT_INSTRUCTIONS", result.nextQuestion?.value)
         assertEquals(TEST_CHAT_ID, result.telegramResponse.chatId)
-        assertNull(result.telegramResponse.buttons)
         assertEquals(CancellationKeyboard, result.telegramResponse.keyboard)
 
         verifySenderCancellation(INSTRUCTION_MSG)
@@ -143,7 +139,6 @@ class AddRecipeActionServiceTest : AbstractDefaultActionServiceTest() {
         assertNull(result.nextQuestion)
         assertEquals(READY_MSG, result.telegramResponse.text)
         assertEquals(TEST_CHAT_ID, result.telegramResponse.chatId)
-        assertNull(result.telegramResponse.buttons)
         assertEquals(BaseKeyboard, result.telegramResponse.keyboard)
 
         verify { recipesServiceClient.addRecipe(TEST_RECIPE_DTO) }
@@ -161,7 +156,7 @@ class AddRecipeActionServiceTest : AbstractDefaultActionServiceTest() {
 
     private fun fullInput() = TelegramAction(
         CommandContext(
-            "/add",
+            "/add-recipe",
             null,
             listOf(
                 createElement("INPUT_NAME", TEST_RECIPE_TITLE),
@@ -174,7 +169,7 @@ class AddRecipeActionServiceTest : AbstractDefaultActionServiceTest() {
 
     private fun getActionForElement(sequence: MutableList<CommandContext.Element>, question: String, answer: String) =
         TelegramAction(
-            CommandContext("/add", null, withElement(sequence, question, answer)),
+            CommandContext("/add-recipe", null, withElement(sequence, question, answer)),
             TEST_USER_INFO
         )
 

@@ -1,6 +1,7 @@
 package io.kamae.family.bot.recipes.service
 
 import arrow.core.Either
+import io.kamae.family.bot.common.domain.keyboard.OneColumnKeyboard
 import io.kamae.family.bot.core.api.ActionService.Companion.prepareResultWithText
 import io.kamae.family.bot.core.api.TelegramBotMessageSender
 import io.kamae.family.bot.core.domain.model.TelegramAction
@@ -30,7 +31,8 @@ class ListRecipesActionService(
                     TelegramResponse(
                         "Выберите рецепт",
                         telegramAction.telegramUserInfo.chatId,
-                        it.data.map { recipe -> TelegramButton(recipe.title, "/get ${recipe.id}") })
+                        OneColumnKeyboard(it.data.map { recipe -> TelegramButton(recipe.title, "/get-recipe ${recipe.id}") })
+                    )
                 )
             })
     }
