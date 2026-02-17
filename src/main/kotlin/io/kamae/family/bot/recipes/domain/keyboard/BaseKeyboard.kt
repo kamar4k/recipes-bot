@@ -15,6 +15,7 @@ object BaseKeyboard : BotKeyboard {
         .keyboardRow(KeyboardRow(listOf(KeyboardButton(RecipesCommand.ADD_RECIPE.alias!!))))
         .keyboardRow(KeyboardRow(listOf(KeyboardButton(PurchasesCommand.CREATE_PRODUCT.alias!!))))
         .keyboardRow(KeyboardRow(listOf(KeyboardButton(PurchasesCommand.LIST_PRODUCTS.alias!!))))
+        .keyboardRow(KeyboardRow(listOf(KeyboardButton(PurchasesCommand.CHANGES_PRODUCTS.alias!!))))
         .keyboardRow(KeyboardRow(listOf(KeyboardButton(CoreCommand.HELP.alias!!))))
         .resizeKeyboard(true)
         .oneTimeKeyboard(false)

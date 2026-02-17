@@ -1,7 +1,6 @@
 package io.kamae.family.bot.purchases.service
 
 import io.kamae.family.bot.AbstractTest
-import io.kamae.family.bot.core.api.MessageHistoryProvider
 import io.kamae.family.bot.core.api.TelegramBotMessageSender
 import io.kamae.family.bot.core.domain.model.TelegramActionResult
 import io.kamae.family.bot.core.domain.model.TelegramResponse
@@ -31,9 +30,6 @@ class ReduceProductValueActionServiceTest : AbstractTest() {
     @MockK
     private lateinit var sender: TelegramBotMessageSender
 
-    @MockK
-    private lateinit var messageHistoryProvider: MessageHistoryProvider
-
     private val messageMock = mockk<Message>()
 
     @InjectMockKs
@@ -44,7 +40,6 @@ class ReduceProductValueActionServiceTest : AbstractTest() {
         every { messageMock.messageId } returns TEST_MSG_ID
         every { sender.sendMessage(any<SendMessage>()) } returns messageMock
         every { listProductsSender.getAndPushProductsList(any()) } returns mockk()
-        justRun { messageHistoryProvider.addToHistory(any(), any(), any()) }
     }
 
     @Test
@@ -61,13 +56,6 @@ class ReduceProductValueActionServiceTest : AbstractTest() {
 
         assertEquals(expected, result)
         verify { purchasesServiceClient.addProductEvent(ADD_EVENT_DTO, TEST_PRODUCT_ID) }
-        verify {
-            messageHistoryProvider.addToHistory(
-                TEST_CHAT_ID,
-                PROD_LIST_HISTORY_CATEGORY,
-                withArg { assertEquals(TEST_MSG_ID, it.messageId) }
-            )
-        }
         verify {
             sender.sendMessage(
                 baseMessageBuilder(expected.telegramResponse.text)

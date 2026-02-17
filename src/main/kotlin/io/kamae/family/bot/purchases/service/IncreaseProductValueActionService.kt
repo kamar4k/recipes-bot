@@ -3,10 +3,7 @@ package io.kamae.family.bot.purchases.service
 import arrow.core.Either
 import io.kamae.family.bot.common.domain.keyboard.CancellationKeyboard
 import io.kamae.family.bot.core.api.ActionService.Companion.prepareResultWithText
-import io.kamae.family.bot.core.api.MessageHistoryProvider
 import io.kamae.family.bot.core.api.TelegramBotMessageSender
-import io.kamae.family.bot.core.api.model.MessageHistoryCategory
-import io.kamae.family.bot.core.api.model.MessageHistoryElement
 import io.kamae.family.bot.core.domain.model.CommandContext
 import io.kamae.family.bot.core.domain.model.TelegramAction
 import io.kamae.family.bot.core.domain.model.TelegramActionResult
@@ -16,7 +13,6 @@ import io.kamae.family.bot.purchases.client.PurchasesServiceClient
 import io.kamae.family.bot.purchases.client.dto.AddProductEventRqDto
 import io.kamae.family.bot.purchases.client.dto.ChangeType
 import io.kamae.family.bot.purchases.client.dto.ProductEventDto
-import io.kamae.family.bot.purchases.constants.PurchasesConstants
 import io.kamae.family.bot.recipes.domain.keyboard.BaseKeyboard
 import org.springframework.stereotype.Service
 import java.util.*
@@ -24,7 +20,6 @@ import java.util.*
 @Service
 class IncreaseProductValueActionService(
     private val purchasesServiceClient: PurchasesServiceClient,
-    private val messageHistoryProvider: MessageHistoryProvider,
     private val listProductsSender: ListProductsSender,
     sender: TelegramBotMessageSender,
 ) : AbstractActionService(sender) {
@@ -58,14 +53,7 @@ class IncreaseProductValueActionService(
             increaseAndGetResult(lastContextElement, it, telegramAction)
         }
 
-        val msgId = sendResult(actionResult)
-
-        messageHistoryProvider.addToHistory(
-            telegramAction.getChatId(),
-            MessageHistoryCategory(PurchasesConstants.PRODUCT_LIST_CATEGORY),
-            MessageHistoryElement(telegramAction.messageId!!), MessageHistoryElement(msgId)
-        )
-
+        sendResult(actionResult)
 
         listProductsSender.getAndPushProductsList(telegramAction.getChatId())
 
@@ -111,13 +99,7 @@ class IncreaseProductValueActionService(
             CancellationKeyboard
         )
 
-        val msgId = sendResult(result)
-
-        messageHistoryProvider.addToHistory(
-            telegramAction.getChatId(),
-            MessageHistoryCategory(PurchasesConstants.PRODUCT_LIST_CATEGORY),
-            MessageHistoryElement(msgId)
-        )
+        sendResult(result)
 
         return result
     }

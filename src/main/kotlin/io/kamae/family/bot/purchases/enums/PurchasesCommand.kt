@@ -2,10 +2,7 @@ package io.kamae.family.bot.purchases.enums
 
 import io.kamae.family.bot.core.api.ActionService
 import io.kamae.family.bot.core.api.TelegramBotCommand
-import io.kamae.family.bot.purchases.service.CreateProductActionService
-import io.kamae.family.bot.purchases.service.IncreaseProductValueActionService
-import io.kamae.family.bot.purchases.service.ListProductsActionService
-import io.kamae.family.bot.purchases.service.ReduceProductValueActionService
+import io.kamae.family.bot.purchases.service.*
 
 enum class PurchasesCommand(
     override val command: String,
@@ -19,7 +16,18 @@ enum class PurchasesCommand(
         "Добавление продукта",
         "Добавление продукта"
     ),
-    LIST_PRODUCTS("/list-products", ListProductsActionService::class.java, "Список продуктов", "Список продуктов"),
+    CHANGES_PRODUCTS(
+        "/changes-products",
+        ListProductsChangesActionService::class.java,
+        "Изменение кол-ва продуктов",
+        "Изменение кол-ва продуктов"
+    ),
+    LIST_PRODUCTS(
+        "/list-products",
+        ListProductsActionService::class.java,
+        "Список продуктов",
+        "Список продуктов"
+    ),
     REDUCE_PRODUCT("/reduce-product", ReduceProductValueActionService::class.java, null, "Уменьнить кол-во продукта"),
     INCREASE_PRODUCT(
         "/increase-product",
