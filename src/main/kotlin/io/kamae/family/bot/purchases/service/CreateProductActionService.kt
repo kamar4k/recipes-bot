@@ -1,9 +1,6 @@
 package io.kamae.family.bot.purchases.service
 
 import arrow.core.Either
-import io.kamae.family.bot.purchases.client.dto.ChangeType
-import io.kamae.family.bot.purchases.client.dto.CreateProductRqDto
-import io.kamae.family.bot.purchases.client.dto.ProductEventDto
 import io.kamae.family.bot.common.domain.keyboard.CancellationKeyboard
 import io.kamae.family.bot.core.api.ActionService.Companion.prepareResultWithText
 import io.kamae.family.bot.core.api.TelegramBotMessageSender
@@ -14,8 +11,12 @@ import io.kamae.family.bot.core.domain.model.TelegramResponse
 import io.kamae.family.bot.core.service.AbstractDefaultActionService
 import io.kamae.family.bot.purchases.api.ListProductsSender
 import io.kamae.family.bot.purchases.client.PurchasesServiceClient
+import io.kamae.family.bot.purchases.client.dto.ChangeType
+import io.kamae.family.bot.purchases.client.dto.CreateProductRqDto
+import io.kamae.family.bot.purchases.client.dto.ProductEventDto
 import io.kamae.family.bot.recipes.domain.keyboard.BaseKeyboard
 import org.springframework.stereotype.Service
+
 //TODO авторизация
 @Service
 class CreateProductActionService(

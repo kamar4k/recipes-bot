@@ -1,12 +1,14 @@
 package io.kamae.family.bot.purchases.service
 
+import com.vdurmont.emoji.EmojiParser
 import io.kamae.family.bot.AbstractTest
+import io.kamae.family.bot.common.domain.keyboard.OneColumnKeyboard
 import io.kamae.family.bot.core.api.MessageHistoryProvider
 import io.kamae.family.bot.core.api.TelegramBotMessageSender
 import io.kamae.family.bot.core.domain.model.TelegramActionResult
+import io.kamae.family.bot.core.domain.model.TelegramButton
 import io.kamae.family.bot.core.domain.model.TelegramResponse
 import io.kamae.family.bot.purchases.client.PurchasesServiceClient
-import io.kamae.family.bot.recipes.domain.keyboard.BaseKeyboard
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
@@ -15,11 +17,17 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessages
 import org.telegram.telegrambots.meta.api.objects.Message
 
-class ListProductsActionServiceTest : AbstractTest() {
+class ListProductsChangesActionServiceTest : AbstractTest() {
+
+    companion object {
+        private val PLUS_EMOJI = EmojiParser.parseToUnicode(":heavy_plus_sign:")
+        private val MINUS_EMOJI = EmojiParser.parseToUnicode(":heavy_minus_sign:")
+    }
 
     @MockK
     private lateinit var purchasesServiceClient: PurchasesServiceClient
@@ -33,7 +41,7 @@ class ListProductsActionServiceTest : AbstractTest() {
     private val messageMock = mockk<Message>()
 
     @InjectMockKs
-    private lateinit var listProductsActionService: ListProductsActionService
+    private lateinit var listProductsChangesActionService: ListProductsChangesActionService
 
     @Test
     fun executeAction_success() {
@@ -43,18 +51,28 @@ class ListProductsActionServiceTest : AbstractTest() {
             TEST_MSG_HISTORY, TEST_MSG_HISTORY_ANOTHER
         )
         justRun { messageHistoryProvider.removeHistory(any(), any()) }
+        justRun { messageHistoryProvider.addToHistory(any(), any(), any()) }
         every { sender.sendMessage(any<DeleteMessages>()) } returns mockk()
         every { sender.sendMessage(any<SendMessage>()) } returns messageMock
 
-        val result = listProductsActionService.executeAction(formAction())
+        val result = listProductsChangesActionService.executeAction(formAction())
 
         val expected = TelegramActionResult(
             TelegramResponse(
-                "Продукт\t|\tКоличество\t|\tПрогноз\n" +
-                        "$TEST_PRODUCT_NAME\t|\tКол-во: $TEST_PRODUCT_CURR_QUANTITY \t|\tПрогноз: $TEST_PRODUCT_PREDICATION_STR\n" +
-                        "$TEST_PRODUCT_NAME_ANOTHER\t|\tКол-во: $TEST_PRODUCT_CURR_QUANTITY_ANOTHER \t|\tПрогноз: $TEST_PRODUCT_PREDICATION_ANOTHER_STR",
+                "Продукт\t|\tКоличество\t|\tДействие",
                 TEST_CHAT_ID,
-                BaseKeyboard
+                OneColumnKeyboard(
+                    listOf(
+                        TelegramButton(
+                            "$TEST_PRODUCT_NAME\t|\tКол-во: $TEST_PRODUCT_CURR_QUANTITY\t|\t$MINUS_EMOJI",
+                            "/reduce-product $TEST_PRODUCT_ID $TEST_PRODUCT_CURR_QUANTITY"
+                        ),
+                        TelegramButton(
+                            "$TEST_PRODUCT_NAME_ANOTHER\t|\tКол-во: $TEST_PRODUCT_CURR_QUANTITY_ANOTHER\t|\t$PLUS_EMOJI",
+                            "/increase-product $TEST_PRODUCT_ID_ANOTHER"
+                        ),
+                    )
+                )
             )
         )
 
@@ -63,7 +81,13 @@ class ListProductsActionServiceTest : AbstractTest() {
         verify { purchasesServiceClient.getProductsInfo() }
         verify { messageHistoryProvider.getHistory(TEST_CHAT_ID, PROD_LIST_HISTORY_CATEGORY) }
         verify { messageHistoryProvider.removeHistory(TEST_CHAT_ID, PROD_LIST_HISTORY_CATEGORY) }
-
+        verify {
+            messageHistoryProvider.addToHistory(TEST_CHAT_ID, PROD_LIST_HISTORY_CATEGORY, withArg {
+                assertEquals(
+                    TEST_MSG_ID, it.messageId
+                )
+            })
+        }
         verify { sender.sendMessage(DeleteMessages(TEST_CHAT_ID.toString(), listOf(TEST_MSG_ID, TEST_MSG_ID_ANOTHER))) }
         verify {
             sender.sendMessage(
@@ -80,9 +104,7 @@ class ListProductsActionServiceTest : AbstractTest() {
 
         every { purchasesServiceClient.getProductsInfo() } throws sourceError
 
-        val error = org.junit.jupiter.api.assertThrows<IllegalStateException> {
-            listProductsActionService.executeAction(formAction())
-        }
+        val error = assertThrows<IllegalStateException> { listProductsChangesActionService.executeAction(formAction()) }
 
         assertEquals("Ошибка от внешнего сервиса: ${sourceError.message}", error.message)
     }

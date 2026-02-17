@@ -2,7 +2,6 @@ package io.kamae.family.bot.purchases.service
 
 import io.kamae.family.bot.AbstractTest
 import io.kamae.family.bot.common.domain.keyboard.CancellationKeyboard
-import io.kamae.family.bot.core.api.MessageHistoryProvider
 import io.kamae.family.bot.core.api.TelegramBotMessageSender
 import io.kamae.family.bot.core.domain.model.CommandContext
 import io.kamae.family.bot.core.domain.model.TelegramActionResult
@@ -34,9 +33,6 @@ class IncreaseProductValueActionServiceTest : AbstractTest() {
     @MockK
     private lateinit var sender: TelegramBotMessageSender
 
-    @MockK
-    private lateinit var messageHistoryProvider: MessageHistoryProvider
-
     private val messageMock = mockk<Message>()
 
     @InjectMockKs
@@ -58,7 +54,6 @@ class IncreaseProductValueActionServiceTest : AbstractTest() {
     fun applyMocks() {
         every { messageMock.messageId } returns TEST_MSG_ID
         every { sender.sendMessage(any<SendMessage>()) } returns messageMock
-        justRun { messageHistoryProvider.addToHistory(any(), any(), any()) }
     }
 
     @Test
@@ -80,18 +75,12 @@ class IncreaseProductValueActionServiceTest : AbstractTest() {
                     .build()
             )
         }
-        verify {
-            messageHistoryProvider.addToHistory(
-                TEST_CHAT_ID, PROD_LIST_HISTORY_CATEGORY, withArg { assertEquals(TEST_MSG_ID, it.messageId) }
-            )
-        }
     }
 
     @Test
     fun executeAction_fullContext() {
         justRun { purchasesServiceClient.addProductEvent(any(), any()) }
         every { listProductsSender.getAndPushProductsList(any()) } returns mockk()
-        justRun { messageHistoryProvider.addToHistory(any(), any(), any(), any()) }
 
         val inputAction = formActionWithContext(
             "/increase-product", TEST_PRODUCT_ID.toString(), listOf(INPUT_QUANTITY_CTX_ELEMENT)
@@ -118,14 +107,6 @@ class IncreaseProductValueActionServiceTest : AbstractTest() {
                 baseMessageBuilder(expected.telegramResponse.text)
                     .replyMarkup(BaseKeyboard.getKeyboard())
                     .build()
-            )
-        }
-        verify {
-            messageHistoryProvider.addToHistory(
-                TEST_CHAT_ID,
-                PROD_LIST_HISTORY_CATEGORY,
-                withArg { assertEquals(TEST_MSG_ID, it.messageId) },
-                withArg { assertEquals(TEST_MSG_ID, it.messageId) }
             )
         }
     }
@@ -162,7 +143,6 @@ class IncreaseProductValueActionServiceTest : AbstractTest() {
 
     @Test
     fun executeAction_incQuantity() {
-        justRun { messageHistoryProvider.addToHistory(any(), any(), any(), any()) }
         every { listProductsSender.getAndPushProductsList(any()) } returns mockk()
 
         val inputAction = formActionWithContext(
