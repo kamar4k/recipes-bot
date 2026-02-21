@@ -13,9 +13,11 @@ import io.kamae.family.bot.core.domain.model.TelegramResponse
 import io.kamae.family.bot.purchases.client.PurchasesServiceClient
 import io.kamae.family.bot.purchases.client.dto.GetProductsInfoRsDto
 import io.kamae.family.bot.purchases.constants.PurchasesConstants.PRODUCT_LIST_CATEGORY
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Service
 
 @Service
+@PreAuthorize("hasRole('PURCHASES_EDITOR')")
 class ListProductsChangesActionService(
     private val messageHistoryProvider: MessageHistoryProvider,
     purchasesServiceClient: PurchasesServiceClient,

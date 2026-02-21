@@ -57,9 +57,9 @@ class AuthorizationTest : AbstractTest() {
 
     @ParameterizedTest
     @MethodSource("testCases")
-    fun testAuthorization(role: RecipesUserRole?, expected: Map<RecipesUserRole, Either<KClass<Throwable>, Boolean>>) {
+    fun testAuthorization(role: String?, expected: Map<String, Either<KClass<Throwable>, Boolean>>) {
 
-        val slot = CapturingSlot<MutableMap<RecipesUserRole, Either<Throwable, Boolean>>>()
+        val slot = CapturingSlot<MutableMap<String, Either<Throwable, Boolean>>>()
         justRun { testSecuredTelegramBot.fixResult(capture(slot)) }
 
         every { update.hasMessage() } returns true
@@ -68,7 +68,7 @@ class AuthorizationTest : AbstractTest() {
         every { user.userName } returns TEST_USER_NAME
 
         role?.let {
-            val userEntity = ApplicationUserEntity(UUID.randomUUID(), TEST_USER_NAME, role.name)
+            val userEntity = ApplicationUserEntity(UUID.randomUUID(), TEST_USER_NAME, role)
             applicationUserRepository.save(userEntity)
         }
 
@@ -89,47 +89,47 @@ class AuthorizationTest : AbstractTest() {
     private fun testCases(): List<Arguments> = listOf(
         Arguments.of(
             null,
-            mapOf<RecipesUserRole, Either<KClass<out Throwable>, Boolean>>(
-                RecipesUserRole.ROLE_RECIPES_GUEST to Either.Right(true),
-                RecipesUserRole.ROLE_RECIPES_READER to Either.Left(AuthorizationDeniedException::class),
-                RecipesUserRole.ROLE_RECIPES_EDITOR to Either.Left(AuthorizationDeniedException::class),
-                RecipesUserRole.ROLE_RECIPES_ADMIN to Either.Left(AuthorizationDeniedException::class),
+            mapOf<String, Either<KClass<out Throwable>, Boolean>>(
+                BotUserRole.ROLE_GUEST.name to Either.Right(true),
+                RecipesUserRole.ROLE_RECIPES_READER.name to Either.Left(AuthorizationDeniedException::class),
+                RecipesUserRole.ROLE_RECIPES_EDITOR.name to Either.Left(AuthorizationDeniedException::class),
+                RecipesUserRole.ROLE_RECIPES_ADMIN.name to Either.Left(AuthorizationDeniedException::class),
             )
         ),
         Arguments.of(
-            RecipesUserRole.ROLE_RECIPES_GUEST,
-            mapOf<RecipesUserRole, Either<KClass<out Throwable>, Boolean>>(
-                RecipesUserRole.ROLE_RECIPES_GUEST to Either.Right(true),
-                RecipesUserRole.ROLE_RECIPES_READER to Either.Left(AuthorizationDeniedException::class),
-                RecipesUserRole.ROLE_RECIPES_EDITOR to Either.Left(AuthorizationDeniedException::class),
-                RecipesUserRole.ROLE_RECIPES_ADMIN to Either.Left(AuthorizationDeniedException::class),
+            BotUserRole.ROLE_GUEST.name,
+            mapOf<String, Either<KClass<out Throwable>, Boolean>>(
+                BotUserRole.ROLE_GUEST.name to Either.Right(true),
+                RecipesUserRole.ROLE_RECIPES_READER.name to Either.Left(AuthorizationDeniedException::class),
+                RecipesUserRole.ROLE_RECIPES_EDITOR.name to Either.Left(AuthorizationDeniedException::class),
+                RecipesUserRole.ROLE_RECIPES_ADMIN.name to Either.Left(AuthorizationDeniedException::class),
             )
         ),
         Arguments.of(
-            RecipesUserRole.ROLE_RECIPES_READER,
-            mapOf<RecipesUserRole, Either<KClass<out Throwable>, Boolean>>(
-                RecipesUserRole.ROLE_RECIPES_GUEST to Either.Right(true),
-                RecipesUserRole.ROLE_RECIPES_READER to Either.Right(true),
-                RecipesUserRole.ROLE_RECIPES_EDITOR to Either.Left(AuthorizationDeniedException::class),
-                RecipesUserRole.ROLE_RECIPES_ADMIN to Either.Left(AuthorizationDeniedException::class),
+            RecipesUserRole.ROLE_RECIPES_READER.name,
+            mapOf<String, Either<KClass<out Throwable>, Boolean>>(
+                BotUserRole.ROLE_GUEST.name to Either.Right(true),
+                RecipesUserRole.ROLE_RECIPES_READER.name to Either.Right(true),
+                RecipesUserRole.ROLE_RECIPES_EDITOR.name to Either.Left(AuthorizationDeniedException::class),
+                RecipesUserRole.ROLE_RECIPES_ADMIN.name to Either.Left(AuthorizationDeniedException::class),
             )
         ),
         Arguments.of(
-            RecipesUserRole.ROLE_RECIPES_EDITOR,
-            mapOf<RecipesUserRole, Either<KClass<out Throwable>, Boolean>>(
-                RecipesUserRole.ROLE_RECIPES_GUEST to Either.Right(true),
-                RecipesUserRole.ROLE_RECIPES_READER to Either.Right(true),
-                RecipesUserRole.ROLE_RECIPES_EDITOR to Either.Right(true),
-                RecipesUserRole.ROLE_RECIPES_ADMIN to Either.Left(AuthorizationDeniedException::class),
+            RecipesUserRole.ROLE_RECIPES_EDITOR.name,
+            mapOf<String, Either<KClass<out Throwable>, Boolean>>(
+                BotUserRole.ROLE_GUEST.name to Either.Right(true),
+                RecipesUserRole.ROLE_RECIPES_READER.name to Either.Right(true),
+                RecipesUserRole.ROLE_RECIPES_EDITOR.name to Either.Right(true),
+                RecipesUserRole.ROLE_RECIPES_ADMIN.name to Either.Left(AuthorizationDeniedException::class),
             )
         ),
         Arguments.of(
-            RecipesUserRole.ROLE_RECIPES_ADMIN,
-            mapOf<RecipesUserRole, Either<KClass<out Throwable>, Boolean>>(
-                RecipesUserRole.ROLE_RECIPES_GUEST to Either.Right(true),
-                RecipesUserRole.ROLE_RECIPES_READER to Either.Right(true),
-                RecipesUserRole.ROLE_RECIPES_EDITOR to Either.Right(true),
-                RecipesUserRole.ROLE_RECIPES_ADMIN to Either.Right(true),
+            RecipesUserRole.ROLE_RECIPES_ADMIN.name,
+            mapOf<String, Either<KClass<out Throwable>, Boolean>>(
+                BotUserRole.ROLE_GUEST.name to Either.Right(true),
+                RecipesUserRole.ROLE_RECIPES_READER.name to Either.Right(true),
+                RecipesUserRole.ROLE_RECIPES_EDITOR.name to Either.Right(true),
+                RecipesUserRole.ROLE_RECIPES_ADMIN.name to Either.Right(true),
             )
         )
     )

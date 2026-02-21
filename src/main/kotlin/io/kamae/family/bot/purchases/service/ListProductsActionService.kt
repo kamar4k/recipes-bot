@@ -10,10 +10,12 @@ import io.kamae.family.bot.purchases.client.PurchasesServiceClient
 import io.kamae.family.bot.purchases.client.dto.GetProductsInfoRsDto
 import io.kamae.family.bot.purchases.client.dto.ProductInfoDto
 import io.kamae.family.bot.recipes.domain.keyboard.BaseKeyboard
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Service
 import java.time.format.DateTimeFormatter
 
 @Service
+@PreAuthorize("hasRole('PURCHASES_READER')")
 class ListProductsActionService(
     messageHistoryProvider: MessageHistoryProvider,
     purchasesServiceClient: PurchasesServiceClient,

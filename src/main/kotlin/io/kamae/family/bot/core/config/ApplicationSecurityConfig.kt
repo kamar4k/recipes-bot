@@ -5,10 +5,13 @@ import io.kamae.family.bot.core.listener.delegate.TelegramBotUpdateHandler
 import io.kamae.family.bot.core.security.ApplicationUserDetailsService
 import io.kamae.family.bot.core.security.annotation.SecuredTelegramListener
 import io.kamae.family.bot.core.security.aspect.SecuredTelegramListenerAspect
+import io.kamae.family.bot.core.security.hierarchy.BotAppRoleHierarchy
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest
 import org.springframework.context.annotation.*
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.context.event.EventListener
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.config.Customizer.withDefaults
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
@@ -40,6 +43,15 @@ class ApplicationSecurityConfig {
         return SecuredTelegramListenerAspect(authenticationManager)
     }
 
+    @Bean
+    fun botRoleHierarchy(hierarchyList: List<BotAppRoleHierarchy>): RoleHierarchy {
+        val hierarchy = hierarchyList.flatMap { it.hierarchySegments }.joinToString(separator = "\n") {
+            "${it.main} > ${it.included}"
+        }
+
+        return RoleHierarchyImpl.fromHierarchy(hierarchy)
+    }
+
     @EventListener(ContextRefreshedEvent::class)
     fun checkSecurityAnnotations(event: ContextRefreshedEvent) {
         val applicationContext = event.applicationContext
@@ -66,14 +78,13 @@ class ApplicationSecurityConfig {
     @Bean
     @Profile("h2")
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
-        http
-            .authorizeHttpRequests {
-                it.requestMatchers(PathRequest.toH2Console())
-                    .permitAll()
-                    .anyRequest()
-                    .authenticated()
-            }
-            .csrf {it.ignoringRequestMatchers(PathRequest.toH2Console()) }
+        http.authorizeHttpRequests {
+            it.requestMatchers(PathRequest.toH2Console())
+                .permitAll()
+                .anyRequest()
+                .authenticated()
+        }
+            .csrf { it.ignoringRequestMatchers(PathRequest.toH2Console()) }
             .headers { headers -> headers.frameOptions { it.sameOrigin() } }
             .formLogin(withDefaults())
 

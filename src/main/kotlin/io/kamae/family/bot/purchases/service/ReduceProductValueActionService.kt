@@ -11,9 +11,11 @@ import io.kamae.family.bot.purchases.client.PurchasesServiceClient
 import io.kamae.family.bot.purchases.client.dto.AddProductEventRqDto
 import io.kamae.family.bot.purchases.client.dto.ChangeType
 import io.kamae.family.bot.purchases.client.dto.ProductEventDto
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Service
 
 @Service
+@PreAuthorize("hasRole('PURCHASES_EDITOR')")
 class ReduceProductValueActionService(
     private val purchasesServiceClient: PurchasesServiceClient,
     private val listProductsSender: ListProductsSender,

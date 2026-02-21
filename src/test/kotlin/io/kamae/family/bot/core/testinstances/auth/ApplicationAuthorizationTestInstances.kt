@@ -3,6 +3,7 @@ package io.kamae.family.bot.core.testinstances.auth
 import arrow.core.Either
 import io.kamae.family.bot.core.domain.model.TelegramUpdateEvent
 import io.kamae.family.bot.core.listener.delegate.TelegramBotUpdateHandler
+import io.kamae.family.bot.core.security.BotUserRole
 import io.kamae.family.bot.core.security.annotation.SecuredTelegramListener
 import io.kamae.family.bot.recipes.domain.RecipesUserRole
 import org.springframework.boot.test.context.TestComponent
@@ -26,30 +27,30 @@ class ApplicationAuthorizationTestConfiguration {
     ): TestSecuredTelegramBotDelegate =
         TestSecuredTelegramBotDelegate(
             mapOf(
-                RecipesUserRole.ROLE_RECIPES_GUEST to guestTestInstance,
-                RecipesUserRole.ROLE_RECIPES_READER to readerTestInstance,
-                RecipesUserRole.ROLE_RECIPES_EDITOR to editorTestInstance,
-                RecipesUserRole.ROLE_RECIPES_ADMIN to adminTestInstance,
+                BotUserRole.ROLE_GUEST.name to guestTestInstance,
+                RecipesUserRole.ROLE_RECIPES_READER.name to readerTestInstance,
+                RecipesUserRole.ROLE_RECIPES_EDITOR.name to editorTestInstance,
+                RecipesUserRole.ROLE_RECIPES_ADMIN.name to adminTestInstance,
             )
         )
 }
 
 @SecuredTelegramListener
 open class TestSecuredTelegramBotDelegate(
-    private val securedClassesMap: Map<RecipesUserRole, AbstractTestAuthorizationInstance>
+    private val securedClassesMap: Map<String, AbstractTestAuthorizationInstance>
 ) : TelegramBotUpdateHandler {
     override fun processUpdate(telegramUpdateEvent: TelegramUpdateEvent) {
-        val results: MutableMap<RecipesUserRole, Either<Throwable, Boolean>> = mutableMapOf()
+        val results: MutableMap<String, Either<Throwable, Boolean>> = mutableMapOf()
 
-        results[RecipesUserRole.ROLE_RECIPES_GUEST] = Either.catch { securedClassesMap[RecipesUserRole.ROLE_RECIPES_GUEST]!!.returnTrue() }
-        results[RecipesUserRole.ROLE_RECIPES_READER] = Either.catch { securedClassesMap[RecipesUserRole.ROLE_RECIPES_READER]!!.returnTrue() }
-        results[RecipesUserRole.ROLE_RECIPES_EDITOR] = Either.catch { securedClassesMap[RecipesUserRole.ROLE_RECIPES_EDITOR]!!.returnTrue() }
-        results[RecipesUserRole.ROLE_RECIPES_ADMIN] = Either.catch { securedClassesMap[RecipesUserRole.ROLE_RECIPES_ADMIN]!!.returnTrue() }
+        results[BotUserRole.ROLE_GUEST.name] = Either.catch { securedClassesMap[BotUserRole.ROLE_GUEST.name]!!.returnTrue() }
+        results[RecipesUserRole.ROLE_RECIPES_READER.name] = Either.catch { securedClassesMap[RecipesUserRole.ROLE_RECIPES_READER.name]!!.returnTrue() }
+        results[RecipesUserRole.ROLE_RECIPES_EDITOR.name] = Either.catch { securedClassesMap[RecipesUserRole.ROLE_RECIPES_EDITOR.name]!!.returnTrue() }
+        results[RecipesUserRole.ROLE_RECIPES_ADMIN.name] = Either.catch { securedClassesMap[RecipesUserRole.ROLE_RECIPES_ADMIN.name]!!.returnTrue() }
 
         fixResult(results)
     }
 
-    open fun fixResult(result: MutableMap<RecipesUserRole, Either<Throwable, Boolean>>) {
+    open fun fixResult(result: MutableMap<String, Either<Throwable, Boolean>>) {
     }
 
 }
@@ -76,7 +77,7 @@ class ReaderTestInstance : AbstractTestAuthorizationInstance {
     override fun returnTrue() = true
 }
 
-@PreAuthorize("hasRole('RECIPES_GUEST')")
+@PreAuthorize("hasRole('GUEST')")
 @TestComponent
 class GuestTestInstance : AbstractTestAuthorizationInstance {
     override fun returnTrue() = true
